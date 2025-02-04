@@ -2,7 +2,6 @@
 - Allow cookies for ShopperLogin API [#2190](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2190
 - Fix refresh token TTL warning from firing when override is not provided [#2114](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2114)
 - Readme updates for private clients [#2212](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2212)
-
 - Update CacheUpdateMatrix for mergeBasket mutation [#2138](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2092)
 - Clear auth state if session has been invalidated by a password change [#2092](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2092)
 - DNT interface improvement [#2203](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2203)
