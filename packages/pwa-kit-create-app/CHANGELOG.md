@@ -1,3 +1,5 @@
+## v3.2.0-preview.3 (Feb 13, 2025)
+
 ## v3.9.0-dev (Oct 29, 2024)
 
 - Update `default.js` and `ssr.js` template to support new passwordless, social, and reset password flows. [#2263] (https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2263)

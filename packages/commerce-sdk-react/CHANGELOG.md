@@ -1,3 +1,6 @@
+## v3.2.0-preview.3 (Feb 13, 2025)
+## v3.2.0-preview.2 (Feb 13, 2025)
+## v3.9.0-preview.3 (Feb 13, 2025)
 ## v3.2.0-preview.2 (Feb 13, 2025)
 ## v3.2.0-preview.1 (Feb 13, 2025)
 ## v3.9.0-preview.2 (Feb 13, 2025)

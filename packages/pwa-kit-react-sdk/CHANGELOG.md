@@ -1,3 +1,4 @@
+## v3.9.0-preview.3 (Feb 13, 2025)
 ## v3.9.0-preview.2 (Feb 13, 2025)
 ## v3.9.0-preview.1 (Feb 12, 2025)
 ## v3.9.0-preview.0 (Feb 03, 2025)
