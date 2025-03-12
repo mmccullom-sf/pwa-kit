@@ -200,7 +200,6 @@ describe('withReactQuery', function () {
     })
 
     test('Performance markers for reactQueryPrerender are set correctly', async () => {
-        // Mock the response object with a performanceTimer
         const mockPerformanceTimer = {
             mark: jest.fn()
         }
