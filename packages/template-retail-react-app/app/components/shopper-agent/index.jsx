@@ -15,7 +15,7 @@ const onClient = typeof window !== 'undefined'
 
 // Function to initialize embedded messaging
 const initEmbeddedMessaging = (
-    orgId,
+    salesforceOrgId,
     embeddedServiceDeploymentName,
     embeddedServiceDeploymentUrl,
     scrt2Url
@@ -28,7 +28,7 @@ const initEmbeddedMessaging = (
         ) {
             window.embeddedservice_bootstrap.settings.language = 'en_US'
             window.embeddedservice_bootstrap.init(
-                orgId,
+                salesforceOrgId,
                 embeddedServiceDeploymentName,
                 embeddedServiceDeploymentUrl,
                 {
@@ -43,7 +43,7 @@ const initEmbeddedMessaging = (
 
 function useMiaw(
     scriptLoadStatus,
-    orgId,
+    salesforceOrgId,
     embeddedServiceDeploymentName,
     embeddedServiceDeploymentUrl,
     scrt2Url
@@ -53,7 +53,7 @@ function useMiaw(
     useEffect(() => {
         if (scriptLoadStatus.loaded && !scriptLoadStatus.error) {
             initEmbeddedMessaging(
-                orgId,
+                salesforceOrgId,
                 embeddedServiceDeploymentName,
                 embeddedServiceDeploymentUrl,
                 scrt2Url
@@ -65,11 +65,31 @@ function useMiaw(
     return isMiawInitialized
 }
 
+function validateCommerceAgentSettings(commerceAgent) {
+    const requiredFields = [
+        'enabled',
+        'embeddedServiceName',
+        'embeddedServiceEndpoint',
+        'scriptSourceUrl',
+        'scrt2Url',
+        'salesforceOrgId',
+        'commerceOrgId',
+        'siteId'
+    ]
+
+    return requiredFields.every((key) => typeof commerceAgent[key] === 'string')
+}
+
 function isEnabled(enabled) {
     return enabled === 'true' && onClient
 }
 
 function FeatureToggle({...props}) {
+    if (!validateCommerceAgentSettings(JSON.parse(props.commerceAgent))) {
+        console.error('Invalid commerce agent settings.')
+        return null
+    }
+
     if (props.isEnabled && props.basketDoneLoading) {
         return props.children
     }
@@ -78,6 +98,7 @@ function FeatureToggle({...props}) {
 }
 
 FeatureToggle.propTypes = {
+    commerceAgent: PropTypes.string,
     isEnabled: PropTypes.bool,
     children: PropTypes.node,
     basketDoneLoading: PropTypes.bool
@@ -90,6 +111,7 @@ function ShopperAgentWindow({commerceAgent, locale, domainUrl, basketId}) {
         scriptSourceUrl,
         scrt2Url,
         salesforceOrgId,
+        commerceOrgId,
         siteId
     } = JSON.parse(commerceAgent)
 
@@ -102,11 +124,12 @@ function ShopperAgentWindow({commerceAgent, locale, domainUrl, basketId}) {
                 SiteId: siteId,
                 BasketId: basketId,
                 Locale: locale,
-                OrganizationId: salesforceOrgId,
+                OrganizationId: commerceOrgId,
                 UsId: usid
             })
         })
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         window.addEventListener('onEmbeddedMessagingWindowMaximized', (e) => {
             const zIndex = theme.zIndices.sticky + 1
             const embeddedMessagingFrame = document.body.querySelector(
@@ -137,8 +160,7 @@ ShopperAgentWindow.propTypes = {
     commerceAgent: PropTypes.string,
     domainUrl: PropTypes.string,
     basketId: PropTypes.string,
-    locale: PropTypes.string,
-    basketDoneLoading: PropTypes.bool
+    locale: PropTypes.string
 }
 
 /**
@@ -156,6 +178,7 @@ function ShopperAgent({commerceAgent, domainUrl, basketId, locale, basketDoneLoa
 
     return (
         <FeatureToggle
+            commerceAgent={commerceAgent}
             isEnabled={isShopperAgentEnabled}
             basketId={basketId}
             basketDoneLoading={basketDoneLoading}
