@@ -7,12 +7,12 @@ inputs:
 
   TEMPLATE_VERSION:
     description: Version of the template to use for the project
-    required: true
+    required: false
     type: string
 
 runs:
   using: composite
   steps:
   - name: Generate new project based on project-key
-    run: node e2e/scripts/generate-project.js --project-key ${{ inputs.PROJECT_KEY }} --templatevVersion ${{ inputs.TEMPLATE_VERSION }}
+    run: node e2e/scripts/generate-project.js --project-key ${{ inputs.PROJECT_KEY }} --templateVersion ${{ inputs.TEMPLATE_VERSION }}
     shell: bash

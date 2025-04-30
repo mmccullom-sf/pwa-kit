@@ -18,12 +18,6 @@ const main = async (opts) => {
         process.exit(1)
     }
 
-    if (!templateVersion) {
-        console.error('You must provide a <template-version>.')
-        console.log(program.helpInformation())
-        process.exit(1)
-    }
-
     try {
         let cliResponses = []
         let projectDir = projectKey
@@ -45,10 +39,14 @@ const main = async (opts) => {
         // Explicitly create outputDir because generator runs into permissions issue when generating no-ext projects.
         await mkdirIfNotExists(config.GENERATED_PROJECTS_DIR)
         const outputDir = `${config.GENERATED_PROJECTS_DIR}/${projectDir}`
-        let generateAppCommand = `${config.GENERATOR_CMD} ${outputDir} --templateVersion ${templateVersion}`
+        let generateAppCommand = `${config.GENERATOR_CMD} ${outputDir}`
         // TODO: Update script to setup local verdaccio npm repo to allow running 'npx @salesforce/pwa-kit-create-app' to generate apps
         if (preset) {
             generateAppCommand = `${config.GENERATOR_CMD} ${outputDir} --preset ${preset}`
+        }
+
+        if (templateVersion) {
+            generateAppCommand = `${generateAppCommand} --templateVersion ${templateVersion}`
         }
         console.log('Running command:', generateAppCommand)
         return await runGeneratorWithResponses(generateAppCommand, cliResponses)
