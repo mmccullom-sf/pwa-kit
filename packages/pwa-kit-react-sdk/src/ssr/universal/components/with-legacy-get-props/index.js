@@ -34,7 +34,7 @@ export const withLegacyGetProps = (Wrapped) => {
                 // getTemplateName should be very fast, under 0.2ms
                 c.getTemplateName().then((templateName) => {
                     res.__performanceTimer.mark(
-                        `${PERFORMANCE_MARKS.getProps}::${templateName}`,
+                        `${PERFORMANCE_MARKS.getProps}.${templateName}`,
                         'start'
                     )
                 })
@@ -49,7 +49,7 @@ export const withLegacyGetProps = (Wrapped) => {
                           .then((result) => {
                               c.getTemplateName().then((templateName) => {
                                   res.__performanceTimer.mark(
-                                      `${PERFORMANCE_MARKS.getProps}::${templateName}`,
+                                      `${PERFORMANCE_MARKS.getProps}.${templateName}`,
                                       'end'
                                   )
                               })

@@ -6,14 +6,14 @@
  */
 import logger from './logger-instance'
 export const PERFORMANCE_MARKS = {
-    total: 'ssr:total',
-    renderToString: 'ssr:render-to-string',
-    routeMatching: 'ssr:route-matching',
-    loadComponent: 'ssr:load-component',
-    fetchStrategies: 'ssr:fetch-strategies',
-    reactQueryPrerender: 'ssr:fetch-strategies:react-query:pre-render',
-    reactQueryUseQuery: 'ssr:fetch-strategies:react-query:use-query',
-    getProps: 'ssr:fetch-strategies:get-prop'
+    total: 'ssr.total',
+    renderToString: 'ssr.render-to-string',
+    routeMatching: 'ssr.route-matching',
+    loadComponent: 'ssr.load-component',
+    fetchStrategies: 'ssr.fetch-strategies',
+    reactQueryPrerender: 'ssr.fetch-strategies.react-query.pre-render',
+    reactQueryUseQuery: 'ssr.fetch-strategies.react-query.use-query',
+    getProps: 'ssr.fetch-strategies.get-prop'
 }
 
 /**
