@@ -72,6 +72,7 @@ import {
 } from '@salesforce/retail-react-app/app/hooks'
 import {useToast} from '@salesforce/retail-react-app/app/hooks/use-toast'
 import useEinstein from '@salesforce/retail-react-app/app/hooks/use-einstein'
+import useDataCloud from '@salesforce/retail-react-app/app/hooks/use-datacloud'
 import useActiveData from '@salesforce/retail-react-app/app/hooks/use-active-data'
 
 // Others
@@ -117,6 +118,7 @@ const ProductList = (props) => {
     const location = useLocation()
     const toast = useToast()
     const einstein = useEinstein()
+    const dataCloud = useDataCloud()
     const activeData = useActiveData()
     const {res} = useServerContext()
     const customerId = useCustomerId()
@@ -159,7 +161,14 @@ const ProductList = (props) => {
                 perPricebook: true,
                 allVariationProperties: true,
                 allImages: true,
-                expand: ['promotions', 'variations', 'prices', 'images', 'custom_properties'],
+                expand: [
+                    'promotions',
+                    'variations',
+                    'prices',
+                    'images',
+                    'page_meta_tags',
+                    'custom_properties'
+                ],
                 refine: _refine
             }
         },
@@ -384,6 +393,7 @@ const ProductList = (props) => {
                         additionalProperties: {error: err, searchQuery}
                     })
                 }
+                dataCloud.sendViewSearchResults(searchParams, productSearchResult)
                 activeData.sendViewSearch(searchParams, productSearchResult)
             } else {
                 try {
@@ -394,6 +404,7 @@ const ProductList = (props) => {
                         additionalProperties: {error: err, category}
                     })
                 }
+                dataCloud.sendViewCategory(searchParams, category, productSearchResult)
                 activeData.sendViewCategory(searchParams, category, productSearchResult)
             }
         }
@@ -411,6 +422,9 @@ const ProductList = (props) => {
                 <title>{category?.pageTitle ?? searchQuery}</title>
                 <meta name="description" content={category?.pageDescription ?? searchQuery} />
                 <meta name="keywords" content={category?.pageKeywords} />
+                {productSearchResult?.pageMetaTags?.map(({id, value}) => {
+                    return <meta name={id} content={value} key={id} />
+                })}
             </Helmet>
             {showNoResults ? (
                 <EmptySearchResults searchQuery={searchQuery} category={category} />

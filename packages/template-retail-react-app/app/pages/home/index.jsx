@@ -35,6 +35,7 @@ import {heroFeatures, features} from '@salesforce/retail-react-app/app/pages/hom
 
 //Hooks
 import useEinstein from '@salesforce/retail-react-app/app/hooks/use-einstein'
+import useDataCloud from '@salesforce/retail-react-app/app/hooks/use-datacloud'
 
 // Constants
 import {
@@ -55,6 +56,7 @@ import {useProductSearch} from '@salesforce/commerce-sdk-react'
 const Home = () => {
     const intl = useIntl()
     const einstein = useEinstein()
+    const dataCloud = useDataCloud()
     const {pathname} = useLocation()
 
     const {res} = useServerContext()
@@ -79,6 +81,7 @@ const Home = () => {
     /**************** Einstein ****************/
     useEffect(() => {
         einstein.sendViewPage(pathname)
+        dataCloud.sendViewPage(pathname)
     }, [])
 
     return (

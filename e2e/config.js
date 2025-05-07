@@ -101,9 +101,13 @@ module.exports = {
       },
     ],
     "retail-app-private-client": [],
+    "retail-react-app-bug-bounty": [],
+    "retail-react-app-demo-site": [],
   },
   PRESET: {
     "retail-app-private-client": "retail-react-app-private-slas-client",
+    "retail-react-app-bug-bounty": "retail-react-app-bug-bounty",
+    "retail-react-app-demo-site": "retail-react-app-demo-site-internal"
   },
   EXPECTED_GENERATED_ARTIFACTS: {
     "retail-app-demo": [

@@ -82,6 +82,7 @@ import {
 import Seo from '@salesforce/retail-react-app/app/components/seo'
 import {Helmet} from 'react-helmet'
 import ShopperAgent from '../shopper-agent/index'
+import {getPathWithLocale} from '@salesforce/retail-react-app/app/utils/url'
 
 const PlaceholderComponent = () => (
     <Center p="2">
@@ -339,7 +340,12 @@ const App = (props) => {
                                 <link
                                     rel="alternate"
                                     hrefLang={locale.id.toLowerCase()}
-                                    href={`${appOrigin}${buildUrl(location.pathname)}`}
+                                    href={`${appOrigin}${getPathWithLocale(locale.id, buildUrl, {
+                                        location: {
+                                            ...location,
+                                            search: ''
+                                        }
+                                    })}`}
                                     key={locale.id}
                                 />
                             ))}
@@ -347,7 +353,12 @@ const App = (props) => {
                             <link
                                 rel="alternate"
                                 hrefLang={site.l10n.defaultLocale.slice(0, 2)}
-                                href={`${appOrigin}${buildUrl(location.pathname)}`}
+                                href={`${appOrigin}${getPathWithLocale(locale.id, buildUrl, {
+                                    location: {
+                                        ...location,
+                                        search: ''
+                                    }
+                                })}`}
                             />
                             {/* A wider fallback for user locales that the app does not support */}
                             <link rel="alternate" hrefLang="x-default" href={`${appOrigin}/`} />

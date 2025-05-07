@@ -107,7 +107,7 @@ const cacheUpdateMatrix: CacheUpdateMatrix = {
     loginGuestUser: noop,
     logout() {
         return {
-            remove: [{queryKey: ['/commerce-sdk-react']}]
+            invalidate: [{queryKey: ['/commerce-sdk-react']}]
         }
     },
     register: noop,

@@ -15,6 +15,7 @@ import ResetPasswordForm from '@salesforce/retail-react-app/app/components/reset
 import ResetPasswordLanding from '@salesforce/retail-react-app/app/pages/reset-password/reset-password-landing'
 import useNavigation from '@salesforce/retail-react-app/app/hooks/use-navigation'
 import useEinstein from '@salesforce/retail-react-app/app/hooks/use-einstein'
+import useDataCloud from '@salesforce/retail-react-app/app/hooks/use-datacloud'
 import {useLocation} from 'react-router-dom'
 import {useRouteMatch} from 'react-router'
 import {usePasswordReset} from '@salesforce/retail-react-app/app/hooks/use-password-reset'
@@ -29,6 +30,7 @@ const ResetPassword = () => {
     const form = useForm()
     const navigate = useNavigation()
     const einstein = useEinstein()
+    const dataCloud = useDataCloud()
     const {pathname} = useLocation()
     const {path} = useRouteMatch()
     const {getPasswordResetToken} = usePasswordReset()
@@ -48,6 +50,7 @@ const ResetPassword = () => {
     /**************** Einstein ****************/
     useEffect(() => {
         einstein.sendViewPage(pathname)
+        dataCloud.sendViewPage(pathname)
     }, [])
 
     return (

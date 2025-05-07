@@ -82,7 +82,14 @@ const Home = () => {
             />
 
             <Hero
+                {{#if answers.project.demo.enableDemoSettings}}
+                title={intl.formatMessage({
+                    defaultMessage: 'The React PWA Starter Store for Retail',
+                    id: 'home.title.react_starter_store'
+                })}
+                {{else}}
                 title={CUSTOM_HOME_TITLE}
+                {{/if}}
                 img=\{{
                     src: getAssetUrl('static/img/hero.png'),
                     alt: 'npx pwa-kit-create-app'

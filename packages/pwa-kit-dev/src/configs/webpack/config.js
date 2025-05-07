@@ -38,6 +38,12 @@ const DEBUG = mode !== production && process.env.DEBUG === 'true'
 const CI = process.env.CI
 const disableHMR = process.env.HMR === 'false'
 
+if (process.env.PWA_KIT_SSR_SOURCE_MAP) {
+    console.warn(
+        'PWA_KIT_SSR_SOURCE_MAP env variable will be deprecated for source-map in the next major release. Please use PWA_KIT_SOURCE_MAP'
+    )
+}
+
 if ([production, development].indexOf(mode) < 0) {
     throw new Error(`Invalid mode "${mode}"`)
 }
@@ -433,7 +439,10 @@ const client =
                 // Must be named "client". See - https://www.npmjs.com/package/webpack-hot-server-middleware#usage
                 name: CLIENT,
                 // use source map to make debugging easier
-                devtool: mode === development ? 'source-map' : false,
+                devtool:
+                    mode === development || process.env.PWA_KIT_SOURCE_MAP === 'true'
+                        ? 'source-map'
+                        : false,
                 entry: {
                     main: getAppEntryPoint()
                 },
@@ -467,7 +476,10 @@ const clientOptional = baseConfig('web')
                 ...optional('fetch-polyfill', resolve(projectDir, 'node_modules', 'whatwg-fetch'))
             },
             // use source map to make debugging easier
-            devtool: mode === development ? 'source-map' : false,
+            devtool:
+                mode === development || process.env.PWA_KIT_SOURCE_MAP === 'true'
+                    ? 'source-map'
+                    : false,
             plugins: [
                 ...config.plugins,
                 analyzeBundle && getBundleAnalyzerPlugin(CLIENT_OPTIONAL)
@@ -486,7 +498,10 @@ const renderer =
                 name: SERVER,
                 entry: '@salesforce/pwa-kit-react-sdk/ssr/server/react-rendering.js',
                 // use eval-source-map for server-side debugging
-                devtool: mode === development && INSPECT ? 'eval-source-map' : false,
+                devtool:
+                    (mode === development && INSPECT) || process.env.PWA_KIT_SOURCE_MAP === 'true'
+                        ? 'eval-source-map'
+                        : false,
                 output: {
                     path: buildDir,
 
@@ -519,7 +534,8 @@ const ssr = (() => {
             .extend((config) => {
                 return {
                     ...config,
-                    ...(process.env.PWA_KIT_SSR_SOURCE_MAP === 'true'
+                    ...(process.env.PWA_KIT_SSR_SOURCE_MAP === 'true' ||
+                    process.env.PWA_KIT_SOURCE_MAP === 'true'
                         ? {devtool: 'source-map'}
                         : {}),
                     // Must *not* be named "server". See - https://www.npmjs.com/package/webpack-hot-server-middleware#usage
@@ -558,7 +574,10 @@ const requestProcessor =
                     libraryTarget: 'commonjs2'
                 },
                 // use eval-source-map for server-side debugging
-                devtool: mode === development && INSPECT ? 'eval-source-map' : false,
+                devtool:
+                    (mode === development && INSPECT) || process.env.PWA_KIT_SOURCE_MAP === 'true'
+                        ? 'eval-source-map'
+                        : false,
                 plugins: [
                     ...config.plugins,
                     analyzeBundle && getBundleAnalyzerPlugin(REQUEST_PROCESSOR)
