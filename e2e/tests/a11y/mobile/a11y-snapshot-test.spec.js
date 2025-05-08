@@ -6,14 +6,13 @@
  */
 
 const {test, expect} = require('@playwright/test')
-const config = require('../../config')
+const config = require('../../../config')
 const {
     answerConsentTrackingForm,
-    registeredUserHappyPath,
     loginShopper,
     registerShopper
-} = require('../../scripts/pageHelpers')
-const {generateUserCredentials, runAccessibilityTest} = require('../../scripts/utils')
+} = require('../../../scripts/pageHelpers')
+const {generateUserCredentials, runAccessibilityTest} = require('../../../scripts/utils')
 
 // NOTE: we do not want to run every test from Desktop again, only check some pages that has separated mobile versions
 test.describe('Accessibility Tests with Snapshots for guest user', () => {

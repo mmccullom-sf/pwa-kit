@@ -79,6 +79,7 @@ jobs:
       # (We also use this env var for making sure a step runs once for the current node version)
       # Note: For node 18, the default was npm 9 until v18.19.0, when it became npm 10
       IS_DEFAULT_NPM: ${{ (matrix.node == 18 && matrix.npm == 10) || (matrix.node == 20 && matrix.npm == 10) || (matrix.node == 22 && matrix.npm == 10) }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -106,7 +107,7 @@ jobs:
           
           # Check the installed version of @playwright/test
           echo "@playwright/test version: $(npm list @playwright/test --depth=0)"
-        
+
       - name: Get Template Version
         run: |-
           version=`jq -r ".version" packages/template-retail-react-app/package.json`
@@ -117,7 +118,7 @@ jobs:
         with:
           PROJECT_KEY: "retail-app-no-ext"
           TEMPLATE_VERSION: ${{ env.retail_app_template_version }}
-          
+
       - name: Validate Retail App Without Extensibility
         uses: ./.github/actions/e2e_validate_generated_app
         with:
@@ -140,6 +141,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      # this will not include a11y tests
       - name: Run Playwright tests
         run: npm run test:e2e
   notify-slack-pwa-no-ext:
@@ -192,6 +194,9 @@ jobs:
       # (We also use this env var for making sure a step runs once for the current node version)
       # Note: For node 18, the default was npm 9 until v18.19.0, when it became npm 10
       IS_DEFAULT_NPM: ${{ (matrix.node == 18 && matrix.npm == 10) || (matrix.node == 20 && matrix.npm == 10) || (matrix.node == 22 && matrix.npm == 10) }}
+      # The current recommended version for Managed Runtime:
+      # https://developer.salesforce.com/docs/commerce/pwa-kit-managed-runtime/guide/upgrade-node-version.html
+      IS_MRT_NODE: ${{ matrix.node == 22 && matrix.npm == 11 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -253,8 +258,13 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      # this will not include a11y tests
       - name: Run Playwright tests
         run: npm run test:e2e
+
+      - name: Run a11y test for Node 22 with npm 11
+        if: env.IS_MRT_NODE == 'true'
+        run: npm run test:e2e:a11y
 
   notify-slack-pwa-ext:
     needs: [run-generator-retail-app-ext]
@@ -345,7 +355,7 @@ jobs:
         uses: ./.github/actions/e2e_validate_generated_app
         with:
           PROJECT_KEY: "retail-app-private-client"
-          TEMPLATE_VERSION: ${{ env.retail_app_template_version }}          
+          TEMPLATE_VERSION: ${{ env.retail_app_template_version }}
 
       - name: Create MRT credentials file
         uses: "./.github/actions/create_mrt"
@@ -362,13 +372,14 @@ jobs:
 
       - name: Set Retail App Private Client Home
         run: export RETAIL_APP_HOME=https://scaffold-pwa-e2e-pwa-kit-private.mobify-storefront.com/
-    
+
       - name: Set PWA Kit E2E Test User
         run: export PWA_E2E_USER_EMAIL=e2e.pwa.kit@gmail.com PWA_E2E_USER_PASSWORD=hpv_pek-JZK_xkz0wzf
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      # this will not include a11y tests
       - name: Run Playwright tests
         run: npm run test:e2e
 

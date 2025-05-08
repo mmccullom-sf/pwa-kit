@@ -6,8 +6,7 @@
  */
 
 const {test, expect} = require('@playwright/test')
-const AxeBuilder = require('@axe-core/playwright').default
-const config = require('../../config')
+const config = require('../../../config')
 const {
     answerConsentTrackingForm,
     navigateToPDPDesktop,
@@ -17,8 +16,8 @@ const {
     wishlistFlow,
     loginShopper,
     registerShopper
-} = require('../../scripts/pageHelpers')
-const {generateUserCredentials, runAccessibilityTest} = require('../../scripts/utils')
+} = require('../../../scripts/pageHelpers')
+const {generateUserCredentials, runAccessibilityTest} = require('../../../scripts/utils')
 
 test.describe('Accessibility Tests with Snapshots for guest user', () => {
     const GUEST_USER_CREDENTIALS = generateUserCredentials()
@@ -121,7 +120,15 @@ test.describe('Accessibility Tests with Snapshots for a registered user', async 
             a11y: {checkA11y: true, snapShotName: 'registered'}
         })
     })
+})
 
+test.describe('Registered Account pages', () => {
+    let registeredUserCredentials = {}
+
+    test.beforeAll(async () => {
+        // Generate credentials once and use throughout tests to avoid creating a new account
+        registeredUserCredentials = generateUserCredentials()
+    })
     test('Account pages should not have any new a11y issues', async ({page}) => {
         const isLoggedIn = await loginShopper({
             page,
@@ -138,8 +145,9 @@ test.describe('Accessibility Tests with Snapshots for a registered user', async 
         await page.waitForLoadState()
         await answerConsentTrackingForm(page)
 
-        await expect(page.getByRole('heading', {name: /Account Details/i})).toBeVisible()
-
+        await expect(page.getByRole('heading', {name: /Account Details/i})).toBeVisible({
+            timeout: 20000
+        })
         await runAccessibilityTest(page, ['registered', 'account-details-a11y-violations.json'])
 
         await page.getByRole('link', {name: 'Addresses'}).click()

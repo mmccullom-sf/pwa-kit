@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {default as AxeBuilder} from '@axe-core/playwright'
-import {expect} from '@playwright/test'
+const AxeBuilder = require('@axe-core/playwright')
+const {expect} = require('@playwright/test')
 
 const {types} = require('util')
 const fs = require('fs')

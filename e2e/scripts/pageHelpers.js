@@ -598,8 +598,9 @@ export const wishlistFlow = async ({page, registeredUserCredentials, a11y = {}})
     await page.waitForLoadState()
     await answerConsentTrackingForm(page)
 
-    await expect(page.getByRole('heading', {name: /Account Details/i})).toBeVisible()
-
+    await expect(page.getByRole('heading', {name: /Account Details/i})).toBeVisible({
+        timeout: 20000
+    })
     // Navigate to PDP
     await navigateToPDPDesktop({page})
 
