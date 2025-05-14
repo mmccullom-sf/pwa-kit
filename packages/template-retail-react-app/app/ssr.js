@@ -317,6 +317,9 @@ const {handler} = runtime.createHandler(options, (app) => {
                         // Connect to DataCloud APIs
                         '*.c360a.salesforce.com'
                     ]
+                },
+                referrerPolicy: {
+                    policy: 'strict-origin-when-cross-origin'
                 }
             }
         })
