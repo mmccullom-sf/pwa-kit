@@ -27,7 +27,7 @@ interface AccessToken {
 const useAccessToken = (): AccessToken => {
     const config = useConfig()
     const auth = useAuthContext()
-    
+
     const token = onClient()
         ? // This conditional is a constant value based on the environment, so the same path will
           // always be followed., and the "rule of hooks" is not violated.

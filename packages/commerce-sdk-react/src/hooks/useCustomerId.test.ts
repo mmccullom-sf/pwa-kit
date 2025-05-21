@@ -26,70 +26,71 @@ const mockedOnClient = utils.onClient as jest.MockedFunction<typeof utils.onClie
 describe('useCustomerId', () => {
     const mockCustomerId = 'test-customer-id'
     const mockSiteId = 'test-site-id'
-    
+
     beforeEach(() => {
         jest.resetAllMocks()
-        
+
         mockedUseConfig.mockReturnValue({
             siteId: mockSiteId
         } as any)
-        
+
         mockedUseAuthContext.mockReturnValue({
             get: jest.fn().mockImplementation((key) => {
                 if (key === 'customer_id') return mockCustomerId
                 return null
             })
         } as any)
-        
+
         mockedUseLocalStorage.mockReturnValue(mockCustomerId)
     })
-    
+
     describe('client-side', () => {
         beforeEach(() => {
             // Mock onClient to return true (client environment)
             mockedOnClient.mockReturnValue(true)
         })
-        
+
         it('uses localStorage for customer ID on client-side', () => {
             const result = useCustomerId()
-            
+
             expect(mockedOnClient).toHaveBeenCalled()
             expect(mockedUseConfig).toHaveBeenCalled()
             expect(mockedUseLocalStorage).toHaveBeenCalledWith(`customer_id_${mockSiteId}`)
             expect(result).toBe(mockCustomerId)
         })
-        
+
         it('returns null when localStorage returns null', () => {
             mockedUseLocalStorage.mockReturnValueOnce(null)
-            
+
             const result = useCustomerId()
-            
+
             expect(result).toBeNull()
         })
     })
-    
+
     describe('server-side', () => {
         beforeEach(() => {
             // Mock onClient to return false (server environment)
             mockedOnClient.mockReturnValue(false)
         })
-        
+
         it('uses auth.get for customer ID on server-side', () => {
             const result = useCustomerId()
-            
+
             expect(mockedOnClient).toHaveBeenCalled()
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             const mockGet = mockedUseAuthContext().get
             expect(mockGet).toHaveBeenCalledWith('customer_id')
             expect(result).toBe(mockCustomerId)
         })
-        
+
         it('returns null when auth.get returns null', () => {
             mockedUseAuthContext.mockReturnValueOnce({
                 get: jest.fn().mockReturnValue(null)
             } as any)
-            
+
             const result = useCustomerId()
-            
+
             expect(result).toBeNull()
         })
     })
