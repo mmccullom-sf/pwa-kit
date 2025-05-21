@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import useAccessToken from './useAccessToken'
+import useCustomerId from './useCustomerId'
 import useAuthContext from './useAuthContext'
 import useLocalStorage from './useLocalStorage'
 import useConfig from './useConfig'
@@ -23,8 +23,8 @@ const mockedUseLocalStorage = useLocalStorage as jest.MockedFunction<typeof useL
 const mockedUseConfig = useConfig as jest.MockedFunction<typeof useConfig>
 const mockedOnClient = utils.onClient as jest.MockedFunction<typeof utils.onClient>
 
-describe('useAccessToken', () => {
-    const mockToken = 'test-access-token'
+describe('useCustomerId', () => {
+    const mockCustomerId = 'test-customer-id'
     const mockSiteId = 'test-site-id'
     
     beforeEach(() => {
@@ -34,18 +34,14 @@ describe('useAccessToken', () => {
             siteId: mockSiteId
         } as any)
         
-        // Mock the auth context to properly handle calls to ready() and get()
         mockedUseAuthContext.mockReturnValue({
-            ready: jest.fn().mockImplementation(() => {
-                return Promise.resolve({ access_token: mockToken })
-            }),
             get: jest.fn().mockImplementation((key) => {
-                if (key === 'access_token') return mockToken
+                if (key === 'customer_id') return mockCustomerId
                 return null
             })
         } as any)
         
-        mockedUseLocalStorage.mockReturnValue(mockToken)
+        mockedUseLocalStorage.mockReturnValue(mockCustomerId)
     })
     
     describe('client-side', () => {
@@ -54,20 +50,21 @@ describe('useAccessToken', () => {
             mockedOnClient.mockReturnValue(true)
         })
         
-        it('uses localStorage for token on client-side', () => {
-            const { token } = useAccessToken()
+        it('uses localStorage for customer ID on client-side', () => {
+            const result = useCustomerId()
             
             expect(mockedOnClient).toHaveBeenCalled()
-            expect(mockedUseLocalStorage).toHaveBeenCalledWith(`access_token_${mockSiteId}`)
-            expect(token).toBe(mockToken)
+            expect(mockedUseConfig).toHaveBeenCalled()
+            expect(mockedUseLocalStorage).toHaveBeenCalledWith(`customer_id_${mockSiteId}`)
+            expect(result).toBe(mockCustomerId)
         })
         
         it('returns null when localStorage returns null', () => {
             mockedUseLocalStorage.mockReturnValueOnce(null)
             
-            const { token } = useAccessToken()
+            const result = useCustomerId()
             
-            expect(token).toBeNull()
+            expect(result).toBeNull()
         })
     })
     
@@ -77,32 +74,23 @@ describe('useAccessToken', () => {
             mockedOnClient.mockReturnValue(false)
         })
         
-        it('uses auth.get for token on server-side', () => {
-            const { token } = useAccessToken()
+        it('uses auth.get for customer ID on server-side', () => {
+            const result = useCustomerId()
             
             expect(mockedOnClient).toHaveBeenCalled()
             const mockGet = mockedUseAuthContext().get
-            expect(mockGet).toHaveBeenCalledWith('access_token')
-            expect(token).toBe(mockToken)
-        })
-    })
-    
-    describe('getTokenWhenReady', () => {
-        it('calls auth.ready() and returns the access token', async () => {
-            const { getTokenWhenReady } = useAccessToken()
-            
-            const result = await getTokenWhenReady()
-            
-            const mockReady = mockedUseAuthContext().ready
-            expect(mockReady).toHaveBeenCalled()
-            expect(result).toBe(mockToken)
+            expect(mockGet).toHaveBeenCalledWith('customer_id')
+            expect(result).toBe(mockCustomerId)
         })
         
-        it('does not call auth.ready() immediately upon hook initialization', () => {
-            useAccessToken()
+        it('returns null when auth.get returns null', () => {
+            mockedUseAuthContext.mockReturnValueOnce({
+                get: jest.fn().mockReturnValue(null)
+            } as any)
             
-            const mockReady = mockedUseAuthContext().ready
-            expect(mockReady).not.toHaveBeenCalled()
+            const result = useCustomerId()
+            
+            expect(result).toBeNull()
         })
     })
 })
