@@ -1,4 +1,4 @@
-## v3.10.0-dev (Feb 18, 2025)
+## v3.10.0 (May 22, 2025)
 - Add Data Cloud API configuration to `default.js`. [#2318] (https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2229)
 - Fix dependencies vulnerabilities [#2338](https://github.com/SalesforceCommerceCloud/pwa-kit/pull/2338)
 
