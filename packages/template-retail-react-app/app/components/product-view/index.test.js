@@ -130,14 +130,14 @@ test('Product View can update quantity', async () => {
 
 test('Product View handles invalid quantity inputs', async () => {
     const user = userEvent.setup()
-    
+
     // Any invalid input should be reset to minOrderQuantity
     await renderWithProviders(<MockComponent product={mockProductDetail} />)
 
     const quantityInput = screen.getByRole('spinbutton', {name: /quantity/i})
     const minQuantity = mockProductDetail.minOrderQuantity.toString()
 
-    // Quantity is empty 
+    // Quantity is empty
     await user.clear(quantityInput)
     await user.tab()
     await waitFor(() => {
@@ -147,7 +147,7 @@ test('Product View handles invalid quantity inputs', async () => {
     // Quantity is zero
     await user.clear(quantityInput)
     await user.type(quantityInput, '0')
-    await user.tab() 
+    await user.tab()
     await waitFor(() => {
         expect(quantityInput).toHaveValue(minQuantity)
     })
