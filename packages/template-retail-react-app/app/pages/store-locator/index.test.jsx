@@ -150,46 +150,36 @@ test('Allows customer to go to store locator page and then select a new store', 
         )
     )
 
-    // Render our test component
     const {user} = renderWithProviders(<MockedComponent />, {
         wrapperProps: {siteAlias: 'uk', appConfig: mockConfig.app}
     })
 
     await user.click(await screen.findByText('Find a Store'))
 
-    // Select Germany as country
     const countrySelect = await screen.findByDisplayValue('Select a country')
     await user.selectOptions(countrySelect, 'DE')
 
-    // Enter postal code for Heidelberg
     await user.type(screen.getByPlaceholderText(/Enter postal code/i), '69117')
 
-    // Click the "Find" button within the form
     const findButtonInForm = screen.getByRole('button', {name: 'Find'})
     await user.click(findButtonInForm)
 
-    // Wait for the specific store to appear in the results
     const storeToSelect = 'Heidelberg Tech Mart'
     await waitFor(() => {
         expect(screen.getByText(storeToSelect)).toBeInTheDocument()
     })
 
-    // Click radio button associated to the store name and expect that it is selected
     const storeNameElement = await screen.findByText(storeToSelect)
 
-    // Find the parent accordion item that contains both the name and the radio button
     const storeAccordionItem = storeNameElement.closest('.chakra-accordion__item')
     if (!storeAccordionItem) {
         throw new Error(`Could not find parent .chakra-accordion__item for store: ${storeToSelect}`)
     }
 
-    // Within this item, find the radio button
     const storeRadio = within(storeAccordionItem).getByRole('radio')
 
-    // Click the radio button
     await user.click(storeRadio)
-
-    // Verify the radio button for the selected store is checked
+    
     expect(storeRadio).toBeChecked()
 })
 
