@@ -66,7 +66,7 @@ test('Renders order history and details', async () => {
         await screen.findAllByAltText(
             'Pleated Bib Long Sleeve Shirt, Silver Grey, small',
             {},
-            {timeout: 15000}
+            {timeout: 500}
         )
     ).toHaveLength(3)
 
@@ -164,7 +164,7 @@ test('Direct navigation to order details and back to order list', async () => {
         await screen.findAllByAltText(
             'Pleated Bib Long Sleeve Shirt, Silver Grey, small',
             {},
-            {timeout: 15000}
+            {timeout: 500}
         )
     ).toHaveLength(3)
 })
