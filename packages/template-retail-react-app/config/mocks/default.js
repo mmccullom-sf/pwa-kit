@@ -82,8 +82,7 @@ module.exports = {
                 organizationId: 'f_ecom_zzrf_001',
                 shortCode: '11111111',
                 siteId: 'site-1'
-            },
-            enablePWAKitPrivateClient: false
+            }
         },
         einsteinAPI: {
             host: 'http://localhost:7777',

@@ -13,7 +13,7 @@
  * - assets/bootstrap/js/overrides/app/components/_app-config
  * - assets/templates/@salesforce/retail-react-app/app/components/_app-config
  */
-import React, {useMemo} from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import {ChakraProvider} from '@salesforce/retail-react-app/app/components/shared/ui'
 
@@ -36,23 +36,6 @@ import {withReactQuery} from '@salesforce/pwa-kit-react-sdk/ssr/universal/compon
 import {useCorrelationId} from '@salesforce/pwa-kit-react-sdk/ssr/universal/hooks'
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
 import {DEFAULT_DNT_STATE} from '@salesforce/retail-react-app/app/constants'
-
-import {MOBIFY_PATH, SLAS_PRIVATE_PROXY_PATH} from '@salesforce/commerce-sdk-react/constant'
-
-import {
-    ShopperBaskets,
-    ShopperContexts,
-    ShopperCustomers,
-    ShopperExperience,
-    ShopperLogin,
-    ShopperOrders,
-    ShopperProducts,
-    ShopperPromotions,
-    ShopperGiftCertificates,
-    ShopperSearch,
-    ShopperSeo,
-    ShopperStores
-} from 'commerce-sdk-isomorphic'
 /**
  * Use the AppConfig component to inject extra arguments into the getProps
  * methods for all Route Components in the app – typically you'd want to do this
@@ -73,78 +56,23 @@ const AppConfig = ({children, locals = {}}) => {
 
     const passwordlessCallback = locals.appConfig.login?.passwordless?.callbackURI
 
-    const proxy = `${appOrigin}${commerceApiConfig.proxyPath}`
-
-    const baseUrl = proxy.split(MOBIFY_PATH)[0]
-    const privateClientEndpoint = `${baseUrl}${SLAS_PRIVATE_PROXY_PATH}`
-
-    const {clientId, organizationId, shortCode} = commerceApiConfig.parameters
-
-    const {enablePWAKitPrivateClient} = commerceApiConfig
-
-    const siteId = locals.site?.id
-    const locale = locals.locale?.id
-    const currency = locals.locale?.preferredCurrency
-
-    const config = {
-        proxy,
-        headers: {
-            ...headers,
-        },
-        parameters: {
-            clientId,
-            organizationId,
-            shortCode,
-            siteId,
-            locale,
-            currency
-        },
-    }
-
-    const apiClients = useMemo(() => {
-        return {
-            shopperBaskets: new ShopperBaskets(config),
-            shopperContexts: new ShopperContexts(config),
-            shopperCustomers: new ShopperCustomers(config),
-            shopperExperience: new ShopperExperience(config),
-            shopperGiftCertificates: new ShopperGiftCertificates(config),
-            shopperLogin: new ShopperLogin({
-                ...config,
-                proxy: enablePWAKitPrivateClient ? privateClientEndpoint : config.proxy
-            }),
-            shopperOrders: new ShopperOrders(config),
-            shopperProducts: new ShopperProducts(config),
-            shopperPromotions: new ShopperPromotions(config),
-            shopperSearch: new ShopperSearch(config),
-            shopperSeo: new ShopperSeo(config),
-            shopperStores: new ShopperStores(config)
-        }
-    }, [
-        clientId,
-        organizationId,
-        shortCode,
-        siteId,
-        proxy,
-        locale,
-        currency,
-        headers?.['correlation-id']
-    ])
-
     return (
         <CommerceApiProvider
-            shortCode={shortCode}
-            clientId={clientId}
-            organizationId={organizationId}
-            siteId={siteId}
-            locale={locale}
-            currency={currency}
+            shortCode={commerceApiConfig.parameters.shortCode}
+            clientId={commerceApiConfig.parameters.clientId}
+            organizationId={commerceApiConfig.parameters.organizationId}
+            siteId={locals.site?.id}
+            locale={locals.locale?.id}
+            currency={locals.locale?.preferredCurrency}
             redirectURI={`${appOrigin}/callback`}
             passwordlessLoginCallbackURI={passwordlessCallback}
-            proxy={proxy}
+            proxy={`${appOrigin}${commerceApiConfig.proxyPath}`}
             headers={headers}
             defaultDnt={DEFAULT_DNT_STATE}
+            // Uncomment 'enablePWAKitPrivateClient' to use SLAS private client login flows.
+            // Make sure to also enable useSLASPrivateClient in ssr.js when enabling this setting.
+            // enablePWAKitPrivateClient={true}
             logger={createLogger({packageName: 'commerce-sdk-react'})}
-            apiClients={apiClients}
         >
             <MultiSiteProvider site={locals.site} locale={locals.locale} buildUrl={locals.buildUrl}>
                 <ChakraProvider theme={theme}>{children}</ChakraProvider>

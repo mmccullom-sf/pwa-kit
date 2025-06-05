@@ -45,10 +45,7 @@ module.exports = {
                 organizationId: 'f_ecom_zzrf_001',
                 shortCode: '8o7m175y',
                 siteId: 'RefArchGlobal'
-            },
-            // Set 'enablePWAKitPrivateClient' to true to use SLAS private client login flows.
-            // Make sure to also enable useSLASPrivateClient in ssr.js when enabling this setting.
-            enablePWAKitPrivateClient: false
+            }
         },
         einsteinAPI: {
             host: 'https://api.cquotient.com',
