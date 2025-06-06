@@ -291,7 +291,9 @@ const App = (props) => {
     }, [location])
 
     return isExpress ? (
-        <OfflineBoundary isOnline={false}>{children}</OfflineBoundary>
+        <OfflineBoundary isOnline={false}>
+            <div style={{width: '100%'}}>{children}</div>
+        </OfflineBoundary>
     ) : (
         <Box className="sf-app" {...styles.container}>
             <StorefrontPreview getToken={getTokenWhenReady}>
