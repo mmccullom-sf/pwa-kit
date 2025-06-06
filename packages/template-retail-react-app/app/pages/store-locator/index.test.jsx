@@ -211,14 +211,10 @@ test('Show no stores are found if there are no stores', async () => {
 
 test('Allows customer to search for stores and expand to view store details', async () => {
     global.server.use(
-        rest.get(
-            '*/shopper-stores/v1/organizations/*/store-search',
-            (req, res, ctx) => {
-                return res(ctx.delay(0), ctx.status(200), ctx.json(mockStores))
-            }
-        )
+        rest.get('*/shopper-stores/v1/organizations/*/store-search', (req, res, ctx) => {
+            return res(ctx.delay(0), ctx.status(200), ctx.json(mockStores))
+        })
     )
-
     const {user} = renderWithProviders(<MockedComponent />, {
         wrapperProps: {siteAlias: 'uk', appConfig: mockConfig.app}
     })
@@ -247,14 +243,14 @@ test('Allows customer to search for stores and expand to view store details', as
 
     const wiesbadenStoreElement = await screen.findByText('Wiesbaden Tech Depot')
     const wiesbadenAccordionItem = wiesbadenStoreElement.closest('.chakra-accordion__item')
-    
-    if (wiesbadenAccordionItem) {
-        const viewMoreButton = within(wiesbadenAccordionItem).getByText('View More')
-        await user.click(viewMoreButton)
-        
-        await waitFor(() => {
-            expect(within(wiesbadenAccordionItem).getByText(/Monday 9 AM–7 PM/)).toBeInTheDocument()
-            expect(within(wiesbadenAccordionItem).getByText(/Sunday Closed/)).toBeInTheDocument()
-        })
-    }
+
+    expect(wiesbadenAccordionItem).toBeTruthy()
+
+    const viewMoreButton = within(wiesbadenAccordionItem).getByText('View More')
+    await user.click(viewMoreButton)
+
+    await waitFor(() => {
+        expect(within(wiesbadenAccordionItem).getByText(/Monday 9 AM–7 PM/)).toBeInTheDocument()
+        expect(within(wiesbadenAccordionItem).getByText(/Sunday Closed/)).toBeInTheDocument()
+    })
 })
