@@ -68,7 +68,7 @@ export const getAppleButtonConfig = (
             value: getCurrencyValueForApi(basket.orderTotal, basket.currency),
             currency: basket.currency
         },
-        requiredShippingContactFields: ['postalAddress', 'name', 'phoneticName', 'email', 'phone'],
+        requiredShippingContactFields: ['postalAddress', 'name', 'email', 'phone'],
         requiredBillingContactFields: ['postalAddress'],
         shippingMethods: shippingMethods?.map((sm) => ({
             label: sm.name,
