@@ -83,7 +83,7 @@ export type ApiClientConfigParams = {
  * A map of commerce-sdk-isomorphic API client instances.
  */
 export interface ApiClients {
-    shopperBaskets: ShopperBaskets<ApiClientConfigParams>
+    shopperBaskets?: ShopperBaskets<ApiClientConfigParams>
     shopperContexts: ShopperContexts<ApiClientConfigParams>
     shopperCustomers: ShopperCustomers<ApiClientConfigParams>
     shopperExperience: ShopperExperience<ApiClientConfigParams>
@@ -97,7 +97,7 @@ export interface ApiClients {
     shopperStores: ShopperStores<ApiClientConfigParams>
 }
 
-export type ApiClient = ApiClients[keyof ApiClients]
+export type ApiClient = NonNullable<ApiClients[keyof ApiClients]>
 
 // --- API HELPERS --- //
 
