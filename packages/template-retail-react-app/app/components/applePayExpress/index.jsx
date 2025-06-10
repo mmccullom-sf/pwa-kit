@@ -15,9 +15,25 @@ import {AdyenShippingMethodsService} from './utils/shipping-methods'
 import {AdyenShippingAddressService} from './utils/shipping-address'
 import {AdyenPaymentsService} from './utils/payments'
 
+const PAYMENT_METHOD = 'applepay';
+const EXPRESS_PAYMENT_AVAILABLE = 'express.payment.available';
+const EXPRESS_PAYMENT_UNAVAILABLE = 'express.payment.unavailable';
+const EXPRESS_PAYMENT_SUCCESS = 'express.payment.success';
+const EXPRESS_PAYMENT_FAILURE = 'express.payment.failure';
+
+const sendExpressMessage = (type, payload = {}) => {
+    window.parent.postMessage(
+        {
+            type,
+            payload
+        },
+        '*'
+    );
+};
+
 export const getApplePaymentMethodConfig = (paymentMethodsResponse) => {
     const applePayPaymentMethod = paymentMethodsResponse?.paymentMethods?.find(
-        (pm) => pm.type === 'applepay'
+        (pm) => pm.type === PAYMENT_METHOD
     )
     return applePayPaymentMethod?.configuration || null
 }
@@ -114,12 +130,24 @@ export const getAppleButtonConfig = (
                         }
                     }
                     resolve(finalPriceUpdate)
-                    navigate(`/checkout/confirmation/${paymentsResponse?.merchantReference}`)
+
+                    var orderId = paymentsResponse?.merchantReference;
+
+                    sendExpressMessage(EXPRESS_PAYMENT_SUCCESS, {
+                        orderId,
+                        PAYMENT_METHOD
+                    });
                 } else {
                     reject()
+                    sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
+                        PAYMENT_METHOD
+                    });
                 }
             } catch (err) {
                 reject()
+                sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
+                    PAYMENT_METHOD
+                });
             }
         },
         onSubmit: () => {},
@@ -245,10 +273,18 @@ export const ApplePayExpress = (props) => {
                 const isApplePayButtonAvailable = await applePayButton.isAvailable()
                 if (isApplePayButtonAvailable) {
                     applePayButton.mount(paymentContainer.current)
+                    sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
+                        PAYMENT_METHOD
+                    });
+                } else {
+                    sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
+                        PAYMENT_METHOD
+                    });
                 }
             } catch (err) {
-                // Error
-                console.log(err)
+                sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
+                    PAYMENT_METHOD
+                });
             }
         }
         if (
