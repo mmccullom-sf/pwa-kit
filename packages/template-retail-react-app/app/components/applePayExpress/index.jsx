@@ -15,9 +15,30 @@ import {AdyenShippingMethodsService} from './utils/shipping-methods'
 import {AdyenShippingAddressService} from './utils/shipping-address'
 import {AdyenPaymentsService} from './utils/payments'
 
+const data = JSON.parse(document.getElementById('agentforce.express.data').innerHTML);
+const id = data.id;
+
+const PAYMENT_METHOD = 'applepay';
+const EXPRESS_PAYMENT_AVAILABLE = 'express.payment.available';
+const EXPRESS_PAYMENT_UNAVAILABLE = 'express.payment.unavailable';
+const EXPRESS_PAYMENT_SUCCESS = 'express.payment.success';
+const EXPRESS_PAYMENT_FAILURE = 'express.payment.failure';
+
+const sendExpressMessage = (type, payload = {}) => {
+    console.log('window.parent', window.parent);
+    window.parent.postMessage(
+        {
+            id,
+            type,
+            payload
+        },
+        '*'
+    );
+};
+
 export const getApplePaymentMethodConfig = (paymentMethodsResponse) => {
     const applePayPaymentMethod = paymentMethodsResponse?.paymentMethods?.find(
-        (pm) => pm.type === 'applepay'
+        (pm) => pm.type === PAYMENT_METHOD
     )
     return applePayPaymentMethod?.configuration || null
 }
@@ -84,6 +105,7 @@ export const getAppleButtonConfig = (
         })),
         onAuthorized: async (resolve, reject, event) => {
             try {
+                console.log('****HERE****');
                 const {shippingContact, billingContact, token} = event.payment
                 const state = {
                     data: {
@@ -114,12 +136,32 @@ export const getAppleButtonConfig = (
                         }
                     }
                     resolve(finalPriceUpdate)
-                    navigate(`/checkout/confirmation/${paymentsResponse?.merchantReference}`)
+
+                    console.log('paymentsResponse', paymentsResponse);
+                    var orderId = paymentsResponse?.orderID
+
+                    sendExpressMessage(EXPRESS_PAYMENT_SUCCESS, {
+                        orderId,
+                        PAYMENT_METHOD
+                    });
+
+                    console.log('payment success event sent');
+
+                    //navigate(`/checkout/confirmation/${paymentsResponse?.merchantReference}`)
                 } else {
                     reject()
+                    sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
+                        PAYMENT_METHOD
+                    });
+
+                    console.log('payment failed event sent');
                 }
             } catch (err) {
                 reject()
+                sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
+                    PAYMENT_METHOD
+                });
+                console.log('payment failed event sent');
             }
         },
         onSubmit: () => {},
@@ -245,10 +287,18 @@ export const ApplePayExpress = (props) => {
                 const isApplePayButtonAvailable = await applePayButton.isAvailable()
                 if (isApplePayButtonAvailable) {
                     applePayButton.mount(paymentContainer.current)
+                    sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
+                        PAYMENT_METHOD
+                    });
+                } else {
+                    sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
+                        PAYMENT_METHOD
+                    });
                 }
             } catch (err) {
-                // Error
-                console.log(err)
+                sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
+                    PAYMENT_METHOD
+                });
             }
         }
         if (
