@@ -6,12 +6,11 @@
  */
 
 import {useEffect, useState} from 'react'
-import type {StoreLocatorDeviceCoordinates} from '@salesforce/retail-react-app/app/components/store-locator/types'
 
 export function useGeolocation(options = {}) {
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<GeolocationPositionError | null>(null)
-    const [coordinates, setCoordinates] = useState<StoreLocatorDeviceCoordinates>({
+    const [error, setError] = useState(null)
+    const [coordinates, setCoordinates] = useState({
         latitude: null,
         longitude: null
     })

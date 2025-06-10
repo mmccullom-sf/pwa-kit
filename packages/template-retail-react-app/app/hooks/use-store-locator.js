@@ -8,24 +8,8 @@
 import {useContext} from 'react'
 import {useSearchStores} from '@salesforce/commerce-sdk-react'
 import {StoreLocatorContext} from '@salesforce/retail-react-app/app/contexts/store-locator-provider'
-import type {
-    StoreLocatorState,
-    StoreLocatorFormValues,
-    StoreLocatorDeviceCoordinates
-} from '@salesforce/retail-react-app/app/components/store-locator/types'
 
-interface StoreLocatorActions {
-    setFormValues: (formValues: StoreLocatorFormValues) => void
-    setDeviceCoordinates: (coordinates: StoreLocatorDeviceCoordinates) => void
-}
-
-type UseStoreLocatorReturn = StoreLocatorState &
-    StoreLocatorActions & {
-        data: NonNullable<ReturnType<typeof useSearchStores>['data']> | undefined
-        isLoading: boolean
-    }
-
-const useStores = (state: StoreLocatorState) => {
+const useStores = (state) => {
     //This is an API limit and is therefore not configurable
     const NUM_STORES_PER_REQUEST_API_MAX = 200
     const apiParameters =
@@ -63,7 +47,7 @@ const useStores = (state: StoreLocatorState) => {
     )
 }
 
-export const useStoreLocator = (): UseStoreLocatorReturn => {
+export const useStoreLocator = () => {
     const context = useContext(StoreLocatorContext)
     if (!context) {
         throw new Error('useStoreLocator must be used within a StoreLocatorProvider')
@@ -77,11 +61,11 @@ export const useStoreLocator = (): UseStoreLocatorReturn => {
     // by entering a postal code and country code.
     // The device mode is when the user is searching for a store by sharing their location.
     // The mode is implicitly set by user's action.
-    const setFormValues = (formValues: StoreLocatorFormValues) => {
+    const setFormValues = (formValues) => {
         setState((prev) => ({...prev, formValues, mode: 'input'}))
     }
 
-    const setDeviceCoordinates = (coordinates: StoreLocatorDeviceCoordinates) => {
+    const setDeviceCoordinates = (coordinates) => {
         setState((prev) => ({
             ...prev,
             deviceCoordinates: coordinates,

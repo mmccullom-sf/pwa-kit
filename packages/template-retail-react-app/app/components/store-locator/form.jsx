@@ -18,9 +18,8 @@ import {
 import {useForm, Controller} from 'react-hook-form'
 import {useStoreLocator} from '@salesforce/retail-react-app/app/hooks/use-store-locator'
 import {useGeolocation} from '@salesforce/retail-react-app/app/hooks/use-geo-location'
-import type {StoreLocatorFormValues} from '@salesforce/retail-react-app/app/components/store-locator/types'
 
-export const StoreLocatorForm: React.FC = () => {
+export const StoreLocatorForm = () => {
     const {config, formValues, setFormValues, setDeviceCoordinates} = useStoreLocator()
     const {coordinates, error, refresh} = useGeolocation()
     const form = useForm<StoreLocatorFormValues>({
@@ -40,7 +39,7 @@ export const StoreLocatorForm: React.FC = () => {
 
     const showCountrySelector = config.supportedCountries.length > 0
 
-    const submitForm = (formValues: StoreLocatorFormValues) => {
+    const submitForm = (formValues) => {
         setFormValues(formValues)
     }
 

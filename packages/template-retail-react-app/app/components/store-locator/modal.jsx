@@ -15,12 +15,7 @@ import {
 } from '@chakra-ui/react'
 import {StoreLocator} from '@salesforce/retail-react-app/app/components/store-locator/main'
 
-interface StoreLocatorModalProps {
-    isOpen: boolean
-    onClose: () => void
-}
-
-export const StoreLocatorModal: React.FC<StoreLocatorModalProps> = ({isOpen, onClose}) => {
+export const StoreLocatorModal = ({isOpen, onClose}) => {
     const isDesktopView = useBreakpointValue({base: false, lg: true})
 
     return isDesktopView ? (

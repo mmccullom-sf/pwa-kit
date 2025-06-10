@@ -6,15 +6,10 @@
  */
 
 import React, {useState, createContext} from 'react'
-import {
-    StoreLocatorContextValue,
-    StoreLocatorState,
-    StoreLocatorProviderProps
-} from '@salesforce/retail-react-app/app/components/store-locator/types'
-export const StoreLocatorContext = createContext<StoreLocatorContextValue | null>(null)
+export const StoreLocatorContext = createContext(null)
 
-export const StoreLocatorProvider: React.FC<StoreLocatorProviderProps> = ({config, children}) => {
-    const [state, setState] = useState<StoreLocatorState>({
+export const StoreLocatorProvider = ({config, children}) => {
+    const [state, setState] = useState({
         mode: 'input',
         formValues: {
             countryCode: config.defaultCountryCode,
@@ -27,7 +22,7 @@ export const StoreLocatorProvider: React.FC<StoreLocatorProviderProps> = ({confi
         config
     })
 
-    const value: StoreLocatorContextValue = {
+    const value = {
         state,
         setState
     }

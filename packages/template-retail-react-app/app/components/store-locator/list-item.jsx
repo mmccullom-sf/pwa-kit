@@ -7,13 +7,8 @@
 
 import React from 'react'
 import {AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, Box} from '@chakra-ui/react'
-import {Store} from '@salesforce/retail-react-app/app/components/store-locator/types'
 
-interface StoreLocatorListItemProps {
-    store: Store
-}
-
-export const StoreLocatorListItem: React.FC<StoreLocatorListItemProps> = ({store}) => {
+export const StoreLocatorListItem = ({store}) => {
     return (
         <AccordionItem>
             <Box margin="10px">

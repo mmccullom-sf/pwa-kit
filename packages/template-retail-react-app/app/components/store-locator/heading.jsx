@@ -8,7 +8,7 @@
 import React from 'react'
 import {Heading} from '@chakra-ui/react'
 
-export const StoreLocatorHeading = (): JSX.Element => {
+export const StoreLocatorHeading = () => {
     return (
         <>
             <Heading fontSize="2xl" marginBottom={6}>

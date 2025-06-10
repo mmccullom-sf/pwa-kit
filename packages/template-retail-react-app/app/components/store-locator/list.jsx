@@ -9,20 +9,15 @@ import React, {useEffect, useState} from 'react'
 import {Accordion, AccordionItem, Box, Button} from '@chakra-ui/react'
 import {StoreLocatorListItem} from '@salesforce/retail-react-app/app/components/store-locator/list-item'
 import {useStoreLocator} from '@salesforce/retail-react-app/app/hooks/use-store-locator'
-import {Stores, Store} from '@salesforce/retail-react-app/app/components/store-locator/types'
 
-interface StoreLocatorListProps {
-    storesInfo?: Stores
-}
-
-export const StoreLocatorList: React.FC<StoreLocatorListProps> = () => {
+export const StoreLocatorList = () => {
     const {data, isLoading, config, formValues, mode} = useStoreLocator()
     const [page, setPage] = useState(1)
     useEffect(() => {
         setPage(1)
     }, [data])
 
-    const displayStoreLocatorStatusMessage = (): string => {
+    const displayStoreLocatorStatusMessage = () => {
         if (isLoading) return 'Loading locations...'
         if (data?.total === 0) return 'Sorry, there are no locations in this area'
 
@@ -30,7 +25,7 @@ export const StoreLocatorList: React.FC<StoreLocatorListProps> = () => {
             const countryName =
                 config.supportedCountries.length !== 0
                     ? config.supportedCountries.find(
-                          (o: {countryCode: string}) => o.countryCode === formValues.countryCode
+                          (o) => o.countryCode === formValues.countryCode
                       )?.countryName || config.defaultCountry
                     : config.defaultCountry
 
@@ -64,7 +59,7 @@ export const StoreLocatorList: React.FC<StoreLocatorListProps> = () => {
                         {displayStoreLocatorStatusMessage()}
                     </Box>
                 </AccordionItem>
-                {storesToShow?.map((store: Store, index: number) => (
+                {storesToShow?.map((store, index) => (
                     <StoreLocatorListItem key={index} store={store} />
                 ))}
             </Accordion>

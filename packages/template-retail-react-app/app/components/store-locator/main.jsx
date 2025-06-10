@@ -6,12 +6,11 @@
  */
 
 import React from 'react'
-
 import {StoreLocatorList} from '@salesforce/retail-react-app/app/components/store-locator/list'
 import {StoreLocatorForm} from '@salesforce/retail-react-app/app/components/store-locator/form'
 import {StoreLocatorHeading} from '@salesforce/retail-react-app/app/components/store-locator/heading'
 
-export const StoreLocator = (): JSX.Element => {
+export const StoreLocator = () => {
     return (
         <>
             <StoreLocatorHeading />
