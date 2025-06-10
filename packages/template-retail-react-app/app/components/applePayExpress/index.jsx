@@ -15,9 +15,6 @@ import {AdyenShippingMethodsService} from './utils/shipping-methods'
 import {AdyenShippingAddressService} from './utils/shipping-address'
 import {AdyenPaymentsService} from './utils/payments'
 
-//const data = JSON.parse(document.getElementById('agentforce.express.data').innerHTML);
-//const id = data.id;
-
 const PAYMENT_METHOD = 'applepay';
 const EXPRESS_PAYMENT_AVAILABLE = 'express.payment.available';
 const EXPRESS_PAYMENT_UNAVAILABLE = 'express.payment.unavailable';
@@ -25,7 +22,6 @@ const EXPRESS_PAYMENT_SUCCESS = 'express.payment.success';
 const EXPRESS_PAYMENT_FAILURE = 'express.payment.failure';
 
 const sendExpressMessage = (type, payload = {}) => {
-    console.log('window.parent', window.parent);
     window.parent.postMessage(
         {
             type,
@@ -104,7 +100,6 @@ export const getAppleButtonConfig = (
         })),
         onAuthorized: async (resolve, reject, event) => {
             try {
-                console.log('****HERE****');
                 const {shippingContact, billingContact, token} = event.payment
                 const state = {
                     data: {
@@ -136,31 +131,23 @@ export const getAppleButtonConfig = (
                     }
                     resolve(finalPriceUpdate)
 
-                    console.log('paymentsResponse', paymentsResponse);
-                    var orderId = paymentsResponse?.orderID
+                    var orderId = paymentsResponse?.merchantReference;
 
                     sendExpressMessage(EXPRESS_PAYMENT_SUCCESS, {
                         orderId,
                         PAYMENT_METHOD
                     });
-
-                    console.log('payment success event sent');
-
-                    //navigate(`/checkout/confirmation/${paymentsResponse?.merchantReference}`)
                 } else {
                     reject()
                     sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
                         PAYMENT_METHOD
                     });
-
-                    console.log('payment failed event sent');
                 }
             } catch (err) {
                 reject()
                 sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
                     PAYMENT_METHOD
                 });
-                console.log('payment failed event sent');
             }
         },
         onSubmit: () => {},
