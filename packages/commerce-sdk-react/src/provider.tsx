@@ -173,7 +173,8 @@ const CommerceApiProvider = (props: CommerceApiProviderProps): ReactElement => {
         defaultDnt,
         passwordlessLoginCallbackURI,
         refreshTokenRegisteredCookieTTL,
-        refreshTokenGuestCookieTTL
+        refreshTokenGuestCookieTTL,
+        apiClients
     ])
 
     const dwsid = auth.get(DWSID_COOKIE_NAME)
@@ -205,7 +206,6 @@ const CommerceApiProvider = (props: CommerceApiProviderProps): ReactElement => {
                 clients[key] = transformSDKClient(apiClient, {
                     props,
                     transformer: _defaultTransformer
-                    // onError
                 })
             })
 
@@ -259,7 +259,8 @@ const CommerceApiProvider = (props: CommerceApiProviderProps): ReactElement => {
         fetchOptions,
         locale,
         currency,
-        headers?.['correlation-id']
+        headers?.['correlation-id'],
+        apiClients
     ])
 
     // Initialize the session
