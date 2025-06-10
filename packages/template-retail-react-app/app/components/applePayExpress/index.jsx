@@ -15,8 +15,8 @@ import {AdyenShippingMethodsService} from './utils/shipping-methods'
 import {AdyenShippingAddressService} from './utils/shipping-address'
 import {AdyenPaymentsService} from './utils/payments'
 
-//const data = JSON.parse(document.getElementById('agentforce.express.data').innerHTML);
-//const id = data.id;
+const data = JSON.parse(document.getElementById('agentforce.express.data').innerHTML);
+const id = data.id;
 
 const PAYMENT_METHOD = 'applepay';
 const EXPRESS_PAYMENT_AVAILABLE = 'express.payment.available';
