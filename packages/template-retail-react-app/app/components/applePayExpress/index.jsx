@@ -283,16 +283,69 @@ export const ApplePayExpress = (props) => {
                     fetchShippingMethods
                 )
                 const applePayButton = await checkout.create('applepay', appleButtonConfig)
-                const isApplePayButtonAvailable = await applePayButton.isAvailable()
-                if (isApplePayButtonAvailable) {
-                    applePayButton.mount(paymentContainer.current)
-                    sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
-                        PAYMENT_METHOD
+
+                const withTimeout = (promise, timeoutMs, errorMessage) => {
+                    console.log(`Setting timeout for ${timeoutMs}ms: ${errorMessage}`);
+
+                    const timeoutPromise = new Promise((_, reject) => {
+                        const timeoutId = setTimeout(() => {
+                            console.log(`TIMEOUT TRIGGERED: ${errorMessage}`);
+                            reject(new Error(errorMessage));
+                        }, timeoutMs);
+
+                        console.log(`Timeout ID: ${timeoutId} set for ${timeoutMs}ms`);
                     });
-                } else {
+
+                    const wrappedPromise = Promise.resolve(promise);
+                    console.log('Starting Promise.race...');
+
+                    return Promise.race([wrappedPromise, timeoutPromise]);
+                };
+
+                const handleApplePayUnavailable = () => {
+                    console.log('*****UNAVAILABLE******');
                     sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
                         PAYMENT_METHOD
                     });
+                };
+
+                // Check if Apple Pay is available
+                console.log('Starting Apple Pay availability check...');
+                var isApplePayButtonAvailable = false;
+                try {
+                    isApplePayButtonAvailable = await withTimeout(
+                        applePayButton.isAvailable(),
+                        1000,
+                        'Apple Pay isAvailable check timed out'
+                    );
+                    console.log('Apple Pay availability result:', isApplePayButtonAvailable);
+                } catch (ex) {
+                    console.error('Apple Pay availability check failed or timed out:', ex.message);
+                    console.log('About to call handleApplePayUnavailable from availability check...');
+                }
+
+                if (!isApplePayButtonAvailable) {
+                    handleApplePayUnavailable();
+                    return;
+                }
+
+                // Mount Apple Pay button
+                console.log('Starting Apple Pay mount...');
+                try {
+                    await withTimeout(
+                        applePayButton.mount(paymentContainer.current),
+                        1000,
+                        'Apple Pay mount timed out'
+                    );
+
+                    console.log('Apple Pay mount successful!');
+                    sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
+                        PAYMENT_METHOD
+                    });
+                } catch (error) {
+                    console.error('Apple Pay mount failed or timed out:', error.message);
+                    console.log('About to call handleApplePayUnavailable from mount...');
+                    handleApplePayUnavailable();
                 }
             } catch (err) {
                 sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
