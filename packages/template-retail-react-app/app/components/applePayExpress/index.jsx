@@ -257,16 +257,26 @@ export const ApplePayExpress = (props) => {
         fetchShippingMethods
     } = useAdyenExpressCheckout()
     const paymentContainer = useRef(null)
+    const isInitializing = useRef(false)
 
     useEffect(() => {
-        let isCancelled = false;
+        if (isInitializing.current) {
+            console.log('🛑 Already initializing, skipping...');
+            return;
+        }
+
+        let isCanceled = false;
 
         const createCheckout = async () => {
-            if (isCancelled) {
+            if (isCanceled) {
                 return;
             }
 
+            isInitializing.current = true;
+            console.log('🚀 Starting Apple Pay initialization...');
+
             const handleApplePayUnavailable = () => {
+                isInitializing.current = false;
                 sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
                     PAYMENT_METHOD
                 });
@@ -323,6 +333,8 @@ export const ApplePayExpress = (props) => {
 
                 try {
                     await applePayButton.mount(paymentContainer.current);
+                    isInitializing.current = false;
+                    console.log('✅ Apple Pay initialization completed successfully');
                     sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
                         PAYMENT_METHOD
                     });
@@ -337,7 +349,8 @@ export const ApplePayExpress = (props) => {
         createCheckout()
 
         return () => {
-            isCancelled = true;
+            isCanceled = true;
+            isInitializing.current = false;
         };
     }, [adyenEnvironment, adyenPaymentMethods])
 
