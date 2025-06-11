@@ -20,6 +20,7 @@ const EXPRESS_PAYMENT_AVAILABLE = 'express.payment.available';
 const EXPRESS_PAYMENT_UNAVAILABLE = 'express.payment.unavailable';
 const EXPRESS_PAYMENT_SUCCESS = 'express.payment.success';
 const EXPRESS_PAYMENT_FAILURE = 'express.payment.failure';
+const EXPRESS_PAYMENT_CANCEL = 'express.payment.cancel';
 
 const sendExpressMessage = (type, payload = {}) => {
     window.parent.postMessage(
@@ -226,6 +227,18 @@ export const getAppleButtonConfig = (
                 }
             } catch (err) {
                 reject()
+            }
+        },
+        onError: (error, component) => {
+            console.error(error.name, error.message, error.stack, component);
+            if (error.name === 'CANCEL') {
+                sendExpressMessage(EXPRESS_PAYMENT_CANCEL, {
+                    PAYMENT_METHOD
+                });
+            } else {
+                sendExpressMessage(EXPRESS_PAYMENT_FAILURE, {
+                    PAYMENT_METHOD
+                });
             }
         }
     }
