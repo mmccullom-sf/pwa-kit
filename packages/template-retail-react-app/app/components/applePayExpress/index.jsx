@@ -297,6 +297,7 @@ export const ApplePayExpress = (props) => {
                         }
                     });
                 } catch (ex) {
+                    console.log('******Adyen unavailable******');
                     handleApplePayUnavailable();
                     return;
                 }
@@ -316,6 +317,7 @@ export const ApplePayExpress = (props) => {
                 try {
                     applePayButton = await checkout.create('applepay', appleButtonConfig);
                 } catch (ex) {
+                    console.log('******Create ApplePay button unavailable******');
                     handleApplePayUnavailable();
                     return;
                 }
@@ -328,6 +330,7 @@ export const ApplePayExpress = (props) => {
                 }
 
                 if (!isApplePayButtonAvailable) {
+                    console.log('******isApplePayButtonAvailable is false******');
                     handleApplePayUnavailable();
                     return;
                 }
@@ -340,10 +343,13 @@ export const ApplePayExpress = (props) => {
                         PAYMENT_METHOD
                     });
                 } catch (error) {
+                    console.log('******Mount error******');
                     handleApplePayUnavailable();
                 }
             } catch (err) {
-                handleApplePayUnavailable();
+                console.log('******Catch all error******');
+                console.error(err);
+                //handleApplePayUnavailable();
             }
         }
 
