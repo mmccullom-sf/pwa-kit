@@ -266,13 +266,13 @@ export const ApplePayExpress = (props) => {
                 return;
             }
 
-            try {
-                const handleApplePayUnavailable = () => {
-                    sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
-                        PAYMENT_METHOD
-                    });
-                };
+            const handleApplePayUnavailable = () => {
+                sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
+                    PAYMENT_METHOD
+                });
+            };
 
+            try {
                 let checkout;
                 try {
                     checkout = await AdyenCheckout({
