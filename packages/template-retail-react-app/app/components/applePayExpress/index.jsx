@@ -262,28 +262,6 @@ export const ApplePayExpress = (props) => {
     useEffect(() => {
         const createCheckout = async () => {
             try {
-                const checkout = await AdyenCheckout({
-                    environment: adyenEnvironment?.ADYEN_ENVIRONMENT,
-                    clientKey: adyenEnvironment?.ADYEN_CLIENT_KEY,
-                    locale: locale.id,
-                    analytics: {
-                        analyticsData: {
-                            applicationInfo: adyenPaymentMethods?.applicationInfo
-                        }
-                    }
-                })
-                const applePaymentMethodConfig = getApplePaymentMethodConfig(adyenPaymentMethods)
-                const appleButtonConfig = getAppleButtonConfig(
-                    authToken,
-                    site,
-                    basket,
-                    shippingMethods?.applicableShippingMethods,
-                    applePaymentMethodConfig,
-                    navigate,
-                    fetchShippingMethods
-                )
-                const applePayButton = await checkout.create('applepay', appleButtonConfig)
-
                 const withTimeout = (promise, timeoutMs, errorMessage) => {
                     console.log(`Setting timeout for ${timeoutMs}ms: ${errorMessage}`);
 
@@ -309,7 +287,54 @@ export const ApplePayExpress = (props) => {
                     });
                 };
 
-                // Check if Apple Pay is available
+                console.log('Starting Adyen Checkout...');
+                var checkout;
+                try {
+                    checkout = await withTimeout(
+                        AdyenCheckout({
+                            environment: adyenEnvironment?.ADYEN_ENVIRONMENT,
+                            clientKey: adyenEnvironment?.ADYEN_CLIENT_KEY,
+                            locale: locale.id,
+                            analytics: {
+                                analyticsData: {
+                                    applicationInfo: adyenPaymentMethods?.applicationInfo
+                                }
+                            }
+                        }),
+                        1000,
+                        'Adyen Checkout timed out'
+                    )
+                } catch (ex) {
+                    console.error('Adyen Checkout failed or timed out:', ex.message);
+                    handleApplePayUnavailable();
+                    return;
+                }
+
+                const applePaymentMethodConfig = getApplePaymentMethodConfig(adyenPaymentMethods)
+                const appleButtonConfig = getAppleButtonConfig(
+                    authToken,
+                    site,
+                    basket,
+                    shippingMethods?.applicableShippingMethods,
+                    applePaymentMethodConfig,
+                    navigate,
+                    fetchShippingMethods
+                )
+
+                console.log('Creating ApplePay button...');
+                var applePayButton;
+                try {
+                    applePayButton = await withTimeout(
+                        checkout.create('applepay', appleButtonConfig),
+                        1000,
+                        'ApplePay button creation timed out'
+                    );
+                } catch (ex) {
+                    console.error('ApplePay button creation failed or timed out:', ex.message);
+                    handleApplePayUnavailable();
+                    return;
+                }
+
                 console.log('Starting Apple Pay availability check...');
                 var isApplePayButtonAvailable = false;
                 try {
@@ -329,7 +354,6 @@ export const ApplePayExpress = (props) => {
                     return;
                 }
 
-                // Mount Apple Pay button
                 console.log('Starting Apple Pay mount...');
                 try {
                     await withTimeout(
@@ -348,9 +372,7 @@ export const ApplePayExpress = (props) => {
                     handleApplePayUnavailable();
                 }
             } catch (err) {
-                sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
-                    PAYMENT_METHOD
-                });
+                handleApplePayUnavailable();
             }
         }
         if (
