@@ -265,15 +265,16 @@ export const ApplePayExpress = (props) => {
             return;
         }
 
+        isInitializing.current = true;
+        console.log('🚀 Starting Apple Pay initialization...');
+
         let isCanceled = false;
 
         const createCheckout = async () => {
             if (isCanceled) {
+                isInitializing.current = false;
                 return;
             }
-
-            isInitializing.current = true;
-            console.log('🚀 Starting Apple Pay initialization...');
 
             const handleApplePayUnavailable = () => {
                 isInitializing.current = false;
