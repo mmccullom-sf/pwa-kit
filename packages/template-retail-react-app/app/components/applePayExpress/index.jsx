@@ -274,60 +274,9 @@ export const ApplePayExpress = (props) => {
                 console.log(`🚫 Instance ${instanceId}: Cancelled before starting`);
                 return;
             }
+
             try {
                 console.log(`📍 Instance ${instanceId}: Inside createCheckout`);
-                const withTimeout = (promise, timeoutMs, errorMessage) => {
-                    console.log(`Setting timeout for ${timeoutMs}ms: ${errorMessage}`);
-
-                    const timeoutPromise = new Promise((_, reject) => {
-                        const timeoutId = setTimeout(() => {
-                            if (isCancelled) {
-                                console.log(`🚫 Instance ${instanceId}: Timeout cancelled for ${errorMessage}`);
-                                return;
-                            }
-                            console.log(`TIMEOUT TRIGGERED: ${errorMessage}`);
-                            console.log(`About to reject promise for: ${errorMessage}`);
-                            reject(new Error(errorMessage));
-                            console.log(`Promise rejected for: ${errorMessage}`);
-                        }, timeoutMs);
-
-                        console.log(`Timeout ID: ${timeoutId} set for ${timeoutMs}ms`);
-                    });
-
-                    console.log(`About to wrap promise for: ${errorMessage}`);
-                    const wrappedPromise = Promise.resolve(promise)
-                        .then(result => {
-                            console.log(`PROMISE RESOLVED: ${errorMessage} - Result:`, result);
-                            return result;
-                        })
-                        .catch(error => {
-                            console.log(`PROMISE REJECTED: ${errorMessage} - Error:`, error.message);
-                            throw error;
-                        });
-
-                    console.log(`Wrapped promise created for: ${errorMessage}`);
-
-                                        console.log('Starting Promise.race...');
-                    console.log('wrappedPromise:', wrappedPromise);
-                    console.log('timeoutPromise:', timeoutPromise);
-
-                    const racePromise = Promise.race([wrappedPromise, timeoutPromise]);
-                    console.log(`Promise.race created for: ${errorMessage}`, racePromise);
-
-                    const handledRacePromise = racePromise
-                        .then(result => {
-                            console.log(`RACE WON BY PROMISE: ${errorMessage} - Result:`, result);
-                            return result;
-                        })
-                        .catch(error => {
-                            console.log(`RACE WON BY TIMEOUT: ${errorMessage} - Error:`, error.message);
-                            console.log(`About to re-throw error for: ${errorMessage}`);
-                            throw error;
-                        });
-
-                    console.log('Returning handled race promise for:', errorMessage);
-                    return handledRacePromise;
-                };
 
                 const handleApplePayUnavailable = () => {
                     console.log('*****UNAVAILABLE******');
@@ -337,29 +286,22 @@ export const ApplePayExpress = (props) => {
                 };
 
                 console.log('Starting Adyen Checkout...');
-                var checkout;
+                let checkout;
                 try {
-                    console.log('About to call withTimeout for Adyen Checkout...');
-                    checkout = await withTimeout(
-                        AdyenCheckout({
-                            environment: adyenEnvironment?.ADYEN_ENVIRONMENT,
-                            clientKey: adyenEnvironment?.ADYEN_CLIENT_KEY,
-                            locale: locale.id,
-                            analytics: {
-                                analyticsData: {
-                                    applicationInfo: adyenPaymentMethods?.applicationInfo
-                                }
+                    checkout = await AdyenCheckout({
+                        environment: adyenEnvironment?.ADYEN_ENVIRONMENT,
+                        clientKey: adyenEnvironment?.ADYEN_CLIENT_KEY,
+                        locale: locale.id,
+                        analytics: {
+                            analyticsData: {
+                                applicationInfo: adyenPaymentMethods?.applicationInfo
                             }
-                        }),
-                        1000,
-                        'Adyen Checkout timed out'
-                    )
-                    console.log('withTimeout completed for Adyen Checkout');
+                        }
+                    });
+                    console.log('✅ Adyen Checkout created successfully:', checkout);
                 } catch (ex) {
-                    console.log('🎯 CAUGHT ERROR in outer try-catch!');
-                    console.error(`❌ Instance ${instanceId}: Adyen Checkout failed or timed out:`, ex.message);
+                    console.error(`❌ Instance ${instanceId}: Adyen Checkout failed:`, ex.message);
                     handleApplePayUnavailable();
-                    console.log(`🛑 Instance ${instanceId}: RETURNING after Adyen Checkout failure`);
                     return;
                 }
 
@@ -375,32 +317,24 @@ export const ApplePayExpress = (props) => {
                 )
 
                 console.log('Creating ApplePay button...');
-                var applePayButton;
+                let applePayButton;
                 try {
-                    applePayButton = await withTimeout(
-                        checkout.create('applepay', appleButtonConfig),
-                        1000,
-                        'ApplePay button creation timed out'
-                    );
+                    applePayButton = await checkout.create('applepay', appleButtonConfig);
+                    console.log('✅ ApplePay button created successfully:', applePayButton);
                 } catch (ex) {
-                    console.error(`❌ Instance ${instanceId}: ApplePay button creation failed or timed out:`, ex.message);
+                    console.error(`❌ Instance ${instanceId}: ApplePay button creation failed:`, ex.message);
                     handleApplePayUnavailable();
-                    console.log(`🛑 Instance ${instanceId}: RETURNING after ApplePay button creation failure`);
                     return;
                 }
 
                 console.log('Starting Apple Pay availability check...');
-                var isApplePayButtonAvailable = false;
+                let isApplePayButtonAvailable = false;
                 try {
-                    isApplePayButtonAvailable = await withTimeout(
-                        applePayButton.isAvailable(),
-                        1000,
-                        'Apple Pay isAvailable check timed out'
-                    );
-                    console.log('Apple Pay availability result:', isApplePayButtonAvailable);
+                    isApplePayButtonAvailable = await applePayButton.isAvailable();
+                    console.log('✅ Apple Pay availability result:', isApplePayButtonAvailable);
                 } catch (ex) {
-                    console.error('Apple Pay availability check failed or timed out:', ex.message);
-                    console.log('About to call handleApplePayUnavailable from availability check...');
+                    console.error('❌ Apple Pay availability check failed:', ex.message);
+                    isApplePayButtonAvailable = false;
                 }
 
                 if (!isApplePayButtonAvailable) {
@@ -410,19 +344,13 @@ export const ApplePayExpress = (props) => {
 
                 console.log('Starting Apple Pay mount...');
                 try {
-                    await withTimeout(
-                        applePayButton.mount(paymentContainer.current),
-                        1000,
-                        'Apple Pay mount timed out'
-                    );
-
-                    console.log('Apple Pay mount successful!');
+                    await applePayButton.mount(paymentContainer.current);
+                    console.log('✅ Apple Pay mount successful!');
                     sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
                         PAYMENT_METHOD
                     });
                 } catch (error) {
-                    console.error('Apple Pay mount failed or timed out:', error.message);
-                    console.log('About to call handleApplePayUnavailable from mount...');
+                    console.error('❌ Apple Pay mount failed:', error.message);
                     handleApplePayUnavailable();
                 }
             } catch (err) {
@@ -430,34 +358,16 @@ export const ApplePayExpress = (props) => {
             }
         }
 
-        console.log('✅ About to check conditions');
-        console.log('Conditions:', {
-            adyenEnvironment: !!adyenEnvironment,
-            adyenPaymentMethods: !!adyenPaymentMethods, 
-            basket: !!basket,
-            shippingMethods: !!shippingMethods,
-            paymentContainer: !!paymentContainer.current
-        });
-
-        // Debug missing data
-        console.log('🔍 Missing data details:');
-        if (!basket) console.log('❌ basket is:', basket);
-        if (!shippingMethods) console.log('❌ shippingMethods is:', shippingMethods);
+        console.log('✅ Checking initialization conditions...');
 
         // Check if core requirements are met (environment and payment methods)
         const coreRequirementsMet = adyenEnvironment && adyenPaymentMethods && paymentContainer.current;
 
         if (coreRequirementsMet) {
-            console.log('✅ Core requirements met, calling createCheckout');
-            console.log('ℹ️  Note: basket and shippingMethods will be checked inside createCheckout if needed');
+            console.log('✅ All core requirements met, initializing Apple Pay...');
             createCheckout()
         } else {
-            console.log('❌ Core requirements not met, skipping createCheckout');
-            console.log('Missing:', {
-                adyenEnvironment: !adyenEnvironment,
-                adyenPaymentMethods: !adyenPaymentMethods,
-                paymentContainer: !paymentContainer.current
-            });
+            console.log('❌ Core requirements not met, skipping initialization');
         }
 
         // Cleanup function
