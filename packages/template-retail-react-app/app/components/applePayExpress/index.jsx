@@ -230,7 +230,6 @@ export const getAppleButtonConfig = (
             }
         },
         onError: (error, component) => {
-            console.error(error.name, error.message, error.stack, component);
             if (error.name === 'CANCEL') {
                 sendExpressMessage(EXPRESS_PAYMENT_CANCEL, {
                     PAYMENT_METHOD
@@ -260,32 +259,20 @@ export const ApplePayExpress = (props) => {
     const paymentContainer = useRef(null)
 
     useEffect(() => {
-        const instanceId = Math.random().toString(36).substr(2, 9);
-        console.log(`🚀 STARTING INSTANCE: ${instanceId}`);
-
-        console.log('✅ After instanceId creation');
-
         let isCancelled = false;
-        console.log('✅ After isCancelled initialization');
 
-        console.log('✅ About to define createCheckout function');
         const createCheckout = async () => {
             if (isCancelled) {
-                console.log(`🚫 Instance ${instanceId}: Cancelled before starting`);
                 return;
             }
 
             try {
-                console.log(`📍 Instance ${instanceId}: Inside createCheckout`);
-
                 const handleApplePayUnavailable = () => {
-                    console.log('*****UNAVAILABLE******');
                     sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
                         PAYMENT_METHOD
                     });
                 };
 
-                console.log('Starting Adyen Checkout...');
                 let checkout;
                 try {
                     checkout = await AdyenCheckout({
@@ -298,9 +285,7 @@ export const ApplePayExpress = (props) => {
                             }
                         }
                     });
-                    console.log('✅ Adyen Checkout created successfully:', checkout);
                 } catch (ex) {
-                    console.error(`❌ Instance ${instanceId}: Adyen Checkout failed:`, ex.message);
                     handleApplePayUnavailable();
                     return;
                 }
@@ -316,24 +301,18 @@ export const ApplePayExpress = (props) => {
                     fetchShippingMethods
                 )
 
-                console.log('Creating ApplePay button...');
                 let applePayButton;
                 try {
                     applePayButton = await checkout.create('applepay', appleButtonConfig);
-                    console.log('✅ ApplePay button created successfully:', applePayButton);
                 } catch (ex) {
-                    console.error(`❌ Instance ${instanceId}: ApplePay button creation failed:`, ex.message);
                     handleApplePayUnavailable();
                     return;
                 }
 
-                console.log('Starting Apple Pay availability check...');
                 let isApplePayButtonAvailable = false;
                 try {
                     isApplePayButtonAvailable = await applePayButton.isAvailable();
-                    console.log('✅ Apple Pay availability result:', isApplePayButtonAvailable);
                 } catch (ex) {
-                    console.error('❌ Apple Pay availability check failed:', ex.message);
                     isApplePayButtonAvailable = false;
                 }
 
@@ -342,15 +321,12 @@ export const ApplePayExpress = (props) => {
                     return;
                 }
 
-                console.log('Starting Apple Pay mount...');
                 try {
                     await applePayButton.mount(paymentContainer.current);
-                    console.log('✅ Apple Pay mount successful!');
                     sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
                         PAYMENT_METHOD
                     });
                 } catch (error) {
-                    console.error('❌ Apple Pay mount failed:', error.message);
                     handleApplePayUnavailable();
                 }
             } catch (err) {
@@ -358,21 +334,9 @@ export const ApplePayExpress = (props) => {
             }
         }
 
-        console.log('✅ Checking initialization conditions...');
+        createCheckout()
 
-        // Check if core requirements are met (environment and payment methods)
-        const coreRequirementsMet = adyenEnvironment && adyenPaymentMethods && paymentContainer.current;
-
-        if (coreRequirementsMet) {
-            console.log('✅ All core requirements met, initializing Apple Pay...');
-            createCheckout()
-        } else {
-            console.log('❌ Core requirements not met, skipping initialization');
-        }
-
-        // Cleanup function
         return () => {
-            console.log(`🧹 CLEANUP INSTANCE: ${instanceId}`);
             isCancelled = true;
         };
     }, [adyenEnvironment, adyenPaymentMethods])
