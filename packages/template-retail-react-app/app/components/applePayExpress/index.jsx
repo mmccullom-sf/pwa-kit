@@ -334,14 +334,9 @@ export const ApplePayExpress = (props) => {
                     handleApplePayUnavailable();
                 }
             } catch (err) {
-                console.log('******Catch all error******');
                 console.error('Full error details:', err);
-
-                // Only call handleApplePayUnavailable if error is NOT related to missing basket data
-                const isBasketDataError = err instanceof TypeError &&
-                                            (err.message.includes('orderTotal') || err.message.includes('undefined is not an object'));
-
-                if (!isBasketDataError) {
+                const isMissingOrderTotalError = err instanceof TypeError && err.message == "undefined is not an object (evaluating 'a.orderTotal')";
+                if (!isMissingOrderTotalError) {
                     handleApplePayUnavailable();
                 }
             }
