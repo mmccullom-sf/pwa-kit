@@ -266,19 +266,13 @@ export const ApplePayExpress = (props) => {
         fetchShippingMethods
     } = useAdyenExpressCheckout()
     const paymentContainer = useRef(null)
-    const isInitializing = useRef(false)
 
     useEffect(() => {
-        if (isInitializing.current) {
-            console.log('🛑 Already initializing, skipping...');
-            return;
-        }
-
-        // Wait for required data before starting initialization
+        // Wait for required data before starting to initialize Apple Pay
         const hasRequiredData = adyenEnvironment &&
-                               adyenPaymentMethods &&
-                               basket?.orderTotal &&
-                               paymentContainer.current;
+                                adyenPaymentMethods &&
+                                basket?.orderTotal &&
+                                paymentContainer.current;
 
         if (!hasRequiredData) {
             console.log('⏳ Waiting for required data...', {
@@ -290,19 +284,16 @@ export const ApplePayExpress = (props) => {
             return;
         }
 
-        isInitializing.current = true;
         console.log('🚀 Starting Apple Pay initialization with all required data...');
 
         let isCanceled = false;
 
         const createCheckout = async () => {
             if (isCanceled) {
-                isInitializing.current = false;
                 return;
             }
 
             const handleApplePayUnavailable = () => {
-                isInitializing.current = false;
                 sendExpressMessage(EXPRESS_PAYMENT_UNAVAILABLE, {
                     PAYMENT_METHOD
                 });
@@ -342,7 +333,6 @@ export const ApplePayExpress = (props) => {
                 try {
                     applePayButton = await checkout.create('applepay', appleButtonConfig);
                 } catch (ex) {
-                    console.log('******Create ApplePay button unavailable******');
                     handleApplePayUnavailable();
                     return;
                 }
@@ -355,26 +345,22 @@ export const ApplePayExpress = (props) => {
                 }
 
                 if (!isApplePayButtonAvailable) {
-                    console.log('******isApplePayButtonAvailable is false******');
                     handleApplePayUnavailable();
                     return;
                 }
 
                 try {
                     await applePayButton.mount(paymentContainer.current);
-                    isInitializing.current = false;
                     console.log('✅ Apple Pay initialization completed successfully');
                     sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
                         PAYMENT_METHOD
                     });
                 } catch (error) {
-                    console.log('******Mount error******');
                     handleApplePayUnavailable();
                 }
             } catch (err) {
                 console.log('******Catch all error******');
                 console.error('Full error details:', err);
-                isInitializing.current = false;
                 handleApplePayUnavailable();
             }
         }
@@ -383,7 +369,6 @@ export const ApplePayExpress = (props) => {
 
         return () => {
             isCanceled = true;
-            isInitializing.current = false;
         };
     }, [adyenEnvironment, adyenPaymentMethods, basket?.orderTotal])
 
