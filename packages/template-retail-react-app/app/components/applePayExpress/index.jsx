@@ -346,15 +346,8 @@ export const ApplePayExpress = (props) => {
                 }
             }
         }
-        if (
-            adyenEnvironment &&
-            adyenPaymentMethods &&
-            basket &&
-            shippingMethods &&
-            paymentContainer.current
-        ) {
-            createCheckout()
-        }
+
+        createCheckout()
 
         return () => {
             isCanceled = true;
