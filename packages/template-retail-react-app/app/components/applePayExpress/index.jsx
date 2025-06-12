@@ -341,7 +341,7 @@ export const ApplePayExpress = (props) => {
                 const isBasketDataError = err instanceof TypeError &&
                                             (err.message.includes('orderTotal') || err.message.includes('undefined is not an object'));
 
-                if (isBasketDataError) {
+                if (!isBasketDataError) {
                     handleApplePayUnavailable();
                 }
             }
