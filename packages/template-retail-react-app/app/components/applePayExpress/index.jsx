@@ -259,8 +259,6 @@ export const ApplePayExpress = (props) => {
     const paymentContainer = useRef(null)
 
     useEffect(() => {
-        console.log('🚀 Starting Apple Pay initialization...');
-
         let isCanceled = false;
 
         const createCheckout = async () => {
@@ -288,7 +286,6 @@ export const ApplePayExpress = (props) => {
                         }
                     });
                 } catch (ex) {
-                    console.log('******Adyen unavailable******');
                     handleApplePayUnavailable();
                     return;
                 }
@@ -326,7 +323,6 @@ export const ApplePayExpress = (props) => {
 
                 try {
                     await applePayButton.mount(paymentContainer.current);
-                    console.log('✅ Apple Pay initialization completed successfully');
                     sendExpressMessage(EXPRESS_PAYMENT_AVAILABLE, {
                         PAYMENT_METHOD
                     });
