@@ -174,13 +174,6 @@ export const getAppleButtonConfig = (
                         newShippingMethods.applicableShippingMethods[0].id,
                         basket.basketId
                     )
-
-                    if (!response || !response.orderTotal) {
-                        console.error('❌ Invalid response from updateShippingMethod:', response);
-                        reject();
-                        return;
-                    }
-
                     buttonConfig.amount = {
                         value: getCurrencyValueForApi(response.orderTotal, response.currency),
                         currency: response.currency
@@ -215,10 +208,8 @@ export const getAppleButtonConfig = (
                     shippingMethod.identifier,
                     basket.basketId
                 )
-
-                if (!response || response.error || !response.orderTotal) {
-                    console.error('❌ Invalid response from updateShippingMethod (method selected):', response);
-                    reject();
+                if (response.error) {
+                    reject()
                 } else {
                     buttonConfig.amount = {
                         value: getCurrencyValueForApi(response.orderTotal, response.currency),
@@ -268,23 +259,7 @@ export const ApplePayExpress = (props) => {
     const paymentContainer = useRef(null)
 
     useEffect(() => {
-        // Wait for required data before starting to initialize Apple Pay
-        const hasRequiredData = adyenEnvironment &&
-                                adyenPaymentMethods &&
-                                basket?.orderTotal &&
-                                paymentContainer.current;
-
-        if (!hasRequiredData) {
-            console.log('⏳ Waiting for required data...', {
-                adyenEnvironment: !!adyenEnvironment,
-                adyenPaymentMethods: !!adyenPaymentMethods,
-                basketOrderTotal: !!basket?.orderTotal,
-                paymentContainer: !!paymentContainer.current
-            });
-            return;
-        }
-
-        console.log('🚀 Starting Apple Pay initialization with all required data...');
+        console.log('🚀 Starting Apple Pay initialization...');
 
         let isCanceled = false;
 
@@ -361,16 +336,30 @@ export const ApplePayExpress = (props) => {
             } catch (err) {
                 console.log('******Catch all error******');
                 console.error('Full error details:', err);
-                handleApplePayUnavailable();
+
+                // Only call handleApplePayUnavailable if error is NOT related to missing basket data
+                const isBasketDataError = err instanceof TypeError &&
+                                            (err.message.includes('orderTotal') || err.message.includes('undefined is not an object'));
+
+                if (isBasketDataError) {
+                    handleApplePayUnavailable();
+                }
             }
         }
-
-        createCheckout()
+        if (
+            adyenEnvironment &&
+            adyenPaymentMethods &&
+            basket &&
+            shippingMethods &&
+            paymentContainer.current
+        ) {
+            createCheckout()
+        }
 
         return () => {
             isCanceled = true;
         };
-    }, [adyenEnvironment, adyenPaymentMethods, basket?.orderTotal])
+    }, [adyenEnvironment, adyenPaymentMethods])
 
     return (
         <>
