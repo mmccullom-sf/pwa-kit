@@ -10,8 +10,7 @@ import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js'
 import {AddComponentTool} from '../utils/AddComponentTool.js'
 import {InsertExistingComponentTool} from '../utils/InsertExistingComponentTool.js'
 import {CreateNewComponentTool} from '../utils/CreateNewComponentTool.js'
-import {StorefrontDevelopmentGuide} from '../utils/pwa-storefront-development-guide.js'
-import {ComponentCreatorModifier} from '../utils/pwa-storefront-component-creator.js'
+import {DevelopmentGuidelinesTool} from '../utils/DevelopmentGuidelinesTool.js'
 
 class PwaStorefrontMCPServerHighLevel {
     constructor() {
@@ -35,19 +34,227 @@ class PwaStorefrontMCPServerHighLevel {
     }
 
     setupTools() {
-        // Register pwa-developing-guide tool
+        // Register DevelopmentGuidelinesTool
         this.server.tool(
-            StorefrontDevelopmentGuide.name,
-            StorefrontDevelopmentGuide.description,
-            StorefrontDevelopmentGuide.inputSchema,
-            StorefrontDevelopmentGuide.fn
+            DevelopmentGuidelinesTool.name,
+            DevelopmentGuidelinesTool.description,
+            DevelopmentGuidelinesTool.inputSchema,
+            DevelopmentGuidelinesTool.fn
         )
+
         this.server.tool(
-            ComponentCreatorModifier.name,
-            ComponentCreatorModifier.description,
-            ComponentCreatorModifier.inputSchema,
-            ComponentCreatorModifier.fn
+            'analyze_code_structure',
+            'Analyze JavaScript/React code structure to identify components, imports, and insertion points',
+            {
+                code: z.string().describe('The JavaScript/React code to analyze')
+            },
+            async (args) => {
+                try {
+                    const analysis = this.addComponentTool.analyzeCodeStructure(args.code)
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: JSON.stringify(
+                                    {
+                                        analysis,
+                                        summary: {
+                                            totalImports: analysis.imports.length,
+                                            totalComponents: analysis.components.length,
+                                            hasReact: analysis.hasReact,
+                                            hasNextJs: analysis.hasNextJs,
+                                            hasTailwind: analysis.hasTailwind,
+                                            insertionPoints: analysis.insertionPoints.length
+                                        }
+                                    },
+                                    null,
+                                    2
+                                )
+                            }
+                        ]
+                    }
+                } catch (error) {
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: JSON.stringify({error: error.message}, null, 2)
+                            }
+                        ],
+                        isError: true
+                    }
+                }
+            }
         )
+
+        this.server.tool(
+            'insert_existing_component',
+            'Insert an existing React component into an existing page',
+            {
+                componentName: z.string().describe('Component name'),
+                targetPage: z.string().describe('Target page name or path'),
+                options: z
+                    .object({
+                        beforeComponentName: z
+                            .string()
+                            .optional()
+                            .describe('Insert before Component name'),
+                        afterComponentName: z
+                            .string()
+                            .optional()
+                            .describe('Insert after Component name')
+                    })
+                    .optional()
+            },
+            async (args) => {
+                try {
+                    const modifiedCode = this.insertExistingComponentTool.insertComponentIntoPage(
+                        args.targetPage,
+                        args.componentName
+                    )
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: JSON.stringify(
+                                    {
+                                        success: true,
+                                        modifiedCode,
+                                        componentType: args.componentType,
+                                        options: args.options
+                                    },
+                                    null,
+                                    2
+                                )
+                            }
+                        ]
+                    }
+                } catch (error) {
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: JSON.stringify({error: error.message}, null, 2)
+                            }
+                        ],
+                        isError: true
+                    }
+                }
+            }
+        )
+
+        this.server.tool(
+            'create_new_component',
+            'Create a new React component file based on the provided code or a new component',
+            {
+                componentName: z.string().describe('Name of the component to create'),
+                componentCode: z.string().optional().describe('Code of the component to create'),
+                projectDir: z.string().optional().describe('Directory of Retail React App')
+            },
+            async (args) => {
+                try {
+                    const componentCode = this.CreateNewComponentTool.createNewComponent(
+                        args.componentName,
+                        args.componentCode,
+                        args.projectDir
+                    )
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: JSON.stringify(
+                                    {
+                                        success: true,
+                                        componentName: args.componentName,
+                                        code: componentCode
+                                    },
+                                    null,
+                                    2
+                                )
+                            }
+                        ]
+                    }
+                } catch (error) {
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: JSON.stringify({error: error.message}, null, 2)
+                            }
+                        ],
+                        isError: true
+                    }
+                }
+            }
+        )
+
+        this.server.resource(
+            'data-model',
+            new ResourceTemplate('data://data-models/{modelName}', {}),
+            {
+                title: 'Commerce Cloud Data Model',
+                description: 'Commerce Cloud Data Model, such as Product, Category, Order, etc.'
+            },
+            async (uri, {modelName}) => {
+                return this.getDataModelDocument(modelName, uri.href)
+            }
+        )
+
+        this.server.tool(
+            'get_data_model',
+            'Get the schema of a data model',
+            {
+                modelName: z
+                    .string()
+                    .describe('The name of the data model (e.g., Product, Category, etc.)')
+            },
+            async ({modelName}) => {
+                const uriHref = `data://data-models/${modelName}`
+                const result = await this.getDataModelDocument(modelName, uriHref)
+                return {
+                    content: result.contents.map((item) => ({
+                        type: 'text',
+                        text: item.text
+                    }))
+                }
+            }
+        )
+    }
+
+    async getDataModelDocument(modelName, uriHref) {
+        try {
+            const __filename = fileURLToPath(import.meta.url)
+            const __dirname = path.dirname(__filename)
+            const dataDir = path.join(__dirname, '..', 'data')
+            const filePath = path.join(dataDir, `${modelName}Document.json`)
+            let fileContent
+            try {
+                fileContent = await fs.readFile(filePath, 'utf8')
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    fileContent = JSON.stringify({message: `No document found for ${modelName}`})
+                } else {
+                    throw err
+                }
+            }
+            return {
+                contents: [
+                    {
+                        uri: uriHref,
+                        text: fileContent
+                    }
+                ]
+            }
+        } catch (error) {
+            return {
+                contents: [
+                    {
+                        uri: uriHref,
+                        text: JSON.stringify({error: error.message}, null, 2)
+                    }
+                ]
+            }
+        }
     }
 
     async run() {
