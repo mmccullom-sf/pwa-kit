@@ -485,7 +485,7 @@ useUsid() => {usid: String, getUsidWhenReady: Promise}
 
 ## Advanced: Customizing SDK Clients with `transformSDKClient`
 
-To support advanced use cases, such as integrating with older templates or customizing API client behavior, `commerce-sdk-react` provides a utility called `transformSDKClient`. This utility wraps any Commerce SDK client instance in a JavaScript Proxy, allowing you to intercept and transform method arguments, headers, parameters, and other options before each SDK call is made.
+To support advanced use cases, such as integrating with older templates or customizing API client behavior, `commerce-sdk-react` provides a utility called `transformSDKClient`. This utility wraps any Commerce SDK client instance in a JavaScript Proxy, enabling you to intercept and transform method arguments, headers, parameters, and other options before each SDK call is made.
 
 This is especially useful for:
 -   Adapting SDK clients for legacy or custom templates.
