@@ -127,10 +127,21 @@
                         "type": "string"
                     },
                     "source": {
-                        "type": "string",
-                        "enum": [
-                            "npm",
-                            "bundle"
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "npm",
+                                    "name"
+                                ]
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "type"
                         ]
                     },
                     "questions": {
@@ -255,7 +266,7 @@
                 "name": "Retail React App Demo",
                 "description": "Generate a project using the settings for a special B2C Commerce instance that is used for demo purposes. No questions are asked. Use this preset to try out PWA Kit.",
                 "shortDescription": "The Retail app with demo Commerce Cloud instance",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": true,
                     "project.hybrid": false,
@@ -279,7 +290,7 @@
                 "name": "Retail React App Demo Store",
                 "description": "Generates a project using the settings for a special B2C Commerce instance that is used for demo purposes. The demo site is accessible at https://pwa-kit.mobify-storefront.com/ This environment uses a SLAS private client and has social and passwordless login enabled. This environment is set up to use multiple locales. Future features that are enabled for the demo environment may be added to this preset.",
                 "shortDescription": "The Retail app with demo Commerce Cloud instance and a private SLAS client",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": false,
                     "project.hybrid": false,
@@ -302,7 +313,7 @@
                 "id": "retail-react-app-test-project",
                 "name": "Retail React App Test Project",
                 "description": "",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": true,
                     "project.hybrid": false,
@@ -325,7 +336,7 @@
                 "id": "retail-react-app-private-slas-client",
                 "name": "Retail React App Private SLAS client project",
                 "description": "",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": true,
                     "project.hybrid": false,
@@ -348,7 +359,7 @@
                 "id": "retail-react-app-bug-bounty",
                 "name": "Retail React App Bug Bounty Project",
                 "description": "",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": true,
                     "project.hybrid": false,
@@ -371,7 +382,7 @@
                 "id": "retail-react-app-hybrid-test-project",
                 "name": "Retail React App Hybrid Test Private SLAS Project",
                 "description": "",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": true,
                     "project.hybrid": true,
@@ -394,7 +405,7 @@
                 "id": "retail-react-app-hybrid-public-client-test-project",
                 "name": "Retail React App Hybrid Test Public SLAS client project",
                 "description": "",
-                "templateId": "@salesforce/retail-react-app",
+                "templateId": "retail-react-app",
                 "answers": {
                     "project.extend": true,
                     "project.hybrid": true,
@@ -417,7 +428,7 @@
                 "id": "typescript-minimal-test-project",
                 "name": "Template Minimal Test Project",
                 "description": "",
-                "templateId": "@salesforce/typescript-minimal",
+                "templateId": "typescript-minimal",
                 "answers": {
                     "project.name": "typescript-minimal"
                 },
@@ -427,7 +438,7 @@
                 "id": "express-minimal-test-project",
                 "name": "Express Minimal Test Project",
                 "description": "",
-                "templateId": "@salesforce/typescript-minimal",
+                "templateId": "typescript-minimal",
                 "answers": {
                     "project.name": "express-minimal"
                 },
@@ -436,11 +447,14 @@
         ],
         "templates": [
             {
-                "id": "@salesforce/retail-react-app",
+                "id": "retail-react-app",
                 "name": "Retail React App",
                 "description": "Generate a project using custom settings by answering questions about a B2C Commerce instance. Use this preset to connect to an existing instance, such as a sandbox.",
                 "shortDescription": "The Retail app using your own Commerce Cloud instance",
-                "source": "npm",
+                "source": {
+                    "type": "npm",
+                    "name": "@salesforce/retail-react-app"
+                },
                 "questions": [
                     {
                         "name": "project.extend",
@@ -533,10 +547,12 @@
                 "private": false
             },
             {
-                "id": "@salesforce/typescript-minimal",
+                "id": "typescript-minimal",
                 "name": "Template Minimal Project",
                 "description": "Generate a project using a bare-bones TypeScript app template. Use this as a TypeScript starting point or as a base on top of which to build new TypeScript project templates for Managed Runtime.",
-                "source": "bundle",
+                "source": {
+                    "type": "bundle"
+                },
                 "questions": [
                     {
                         "name": "project.name",
@@ -554,7 +570,9 @@
                 "id": "express-minimal",
                 "name": "Express Minimal Project",
                 "description": "Generate a project using a bare-bones express app template. Use this as a starting point for APIs or as a base on top of which to build new project templates for Managed Runtime.",
-                "source": "bundle",
+                "source": {
+                    "type": "bundle"
+                },
                 "questions": [
                     {
                         "name": "project.name",
@@ -572,7 +590,9 @@
                 "id": "mrt-reference-app",
                 "name": "Managed Runtime Reference App",
                 "description": "",
-                "source": "bundle",
+                "source": {
+                    "type": "bundle"
+                },
                 "questions": [
                     {
                         "name": "project.name",

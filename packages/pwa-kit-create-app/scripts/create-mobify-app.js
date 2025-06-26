@@ -310,10 +310,10 @@ const runGenerator = (context, {outputDir, templateVersion, verbose}) => {
     const packagePath = p.join(tmp, 'package')
     let tarPath
 
-    switch (source) {
+    switch (source.type) {
         case TEMPLATE_SOURCE_NPM: {
             const tarFile = sh
-                .exec(`npm pack ${id}@${templateVersion} --pack-destination="${tmp}"`, {
+                .exec(`npm pack ${source.name}@${templateVersion} --pack-destination="${tmp}"`, {
                     silent: true
                 })
                 .stdout.trim()
@@ -321,16 +321,17 @@ const runGenerator = (context, {outputDir, templateVersion, verbose}) => {
             break
         }
         case TEMPLATE_SOURCE_BUNDLE:
-            tarPath = p.join(__dirname, '..', 'templates', `${id}.tar.gz`)
+            tarPath = p.join(__dirname, '..', 'templates', `${source?.name || id}.tar.gz`)
             break
         default: {
-            const msg = `Error: Cannot handle template source type ${source}.`
+            const msg = `Error: Cannot handle template source type ${source.type}.`
             console.error(msg)
             process.exit(1)
         }
     }
 
     // Extract the source
+    console.log('Extracting base template from package or npm: ', tarPath)
     tar.x({
         file: tarPath,
         cwd: tmp,
@@ -351,6 +352,7 @@ const runGenerator = (context, {outputDir, templateVersion, verbose}) => {
             sh.cp('-rf', p.join(packagePath, asset), outputDir)
         })
     } else {
+        console.log('Copying base template from package or npm: ', packagePath, outputDir)
         // Copy the base template either from the package or npm.
         sh.cp('-rf', packagePath, outputDir)
 
@@ -481,7 +483,8 @@ const main = async (opts) => {
     selectedTemplate = TEMPLATES.find(({id}) => id === answers.general.presetOrTemplateId)
 
     // Give some feedback to the user.
-    console.log(`Using template "${selectedTemplate.name}"`)
+    console.log(selectedTemplate, answers.general.presetOrTemplateId)
+    console.log(`Using template "${selectedTemplate.id}"`)
 
     // Assign the  preset to the context.
     context.template = selectedTemplate
