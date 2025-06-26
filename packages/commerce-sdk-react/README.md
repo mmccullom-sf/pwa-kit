@@ -498,7 +498,7 @@ This is especially useful for:
 -   `transformer`: A function that receives the props, method name, and options, and returns the transformed options.
 -   `onError`: (Optional) A function to handle errors thrown by SDK methods.
 
-Every method call on the proxied client will pass through your transformer before being executed.
+Every method call on the proxied client passes through your transformer before being executed.
 
 #### Example: Passing Custom SDK Clients to the Provider
 
