@@ -581,7 +581,7 @@ By default, `CommerceApiProvider` automatically initializes authentication by ca
 </CommerceApiProvider>
 ```
 
-- **Default:** `disableAuthInit` is `false` (auth will be initialized automatically).
+- **Default:** `disableAuthInit` is `false` (auth is initialized automatically).
 - **When to use:** Set `disableAuthInit` to `true` if you are initializing authentication outside of the provider (for example, in legacy PWA Kit templates or when using SSR with `getProps`). This prevents duplicate initialization and potential issues with tokens or customer information.
 
 > **Note:** For most modern PWA Kit and React Query-based apps, you do **not** need to set this prop.
