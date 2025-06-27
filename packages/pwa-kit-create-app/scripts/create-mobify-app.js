@@ -540,17 +540,17 @@ const main = async (opts) => {
         if (pkgJSON?.scripts['extract-default-translations']) {
             pkgJSON.scripts['extract-default-translations'] = pkgJSON.scripts[
                 'extract-default-translations'
-            ].replace('./', `./node_modules/${selectedTemplate.id}/`)
+            ].replace('./', `./node_modules/${selectedTemplate.source.name}/`)
         }
         if (pkgJSON?.scripts['compile-translations']) {
             pkgJSON.scripts['compile-translations'] = pkgJSON.scripts[
                 'compile-translations'
-            ].replace('./', `./node_modules/${selectedTemplate.id}/`)
+            ].replace('./', `./node_modules/${selectedTemplate.source.name}/`)
         }
         if (pkgJSON?.scripts['compile-translations:pseudo']) {
             pkgJSON.scripts['compile-translations:pseudo'] = pkgJSON.scripts[
                 'compile-translations:pseudo'
-            ].replace('./', `./node_modules/${selectedTemplate.id}/`)
+            ].replace('./', `./node_modules/${selectedTemplate.source.name}/`)
         }
 
         context = merge(
