@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // First party dependencies
-import CREATE_APP_SCHEMA from '@salesforce/pwa-kit-create-app/program.json' assert {type: 'json'}
+import CREATE_APP_SCHEMA from '@salesforce/pwa-kit-create-app/program.json' with {type: 'json'}
 
 // Project dependencies
 import {EmptyJsonSchema} from './utils.js'
