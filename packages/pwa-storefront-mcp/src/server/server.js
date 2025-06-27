@@ -37,7 +37,6 @@ class PwaStorefrontMCPServerHighLevel {
     }
 
     setupTools() {
-
         // Register CreateProjectTool
         this.server.tool(
             CreateProjectTool.name,
