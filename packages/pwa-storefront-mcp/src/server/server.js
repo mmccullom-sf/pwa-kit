@@ -8,8 +8,11 @@
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js'
 import {z} from 'zod'
-import {DeveloperGuidelinesTool} from '../utils/pwa-developer-guideline-tool.js'
-import {CreateNewComponentTool} from '../utils/create-new-component-tool.js'
+import {
+    CreateAppGuidelinesTool,
+    CreateNewComponentTool,
+    DeveloperGuidelinesTool
+} from '../utils/index.js'
 import {HookRecommenderTool} from '../utils/hook-recommender-tool.js'
 import productDocument from '../data/ProductDocument.json' with { type: 'json' }
 import categoryDocument from '../data/CategoryDocument.json' with { type: 'json' }
@@ -42,6 +45,14 @@ class PwaStorefrontMCPServerHighLevel {
     }
 
     setupTools() {
+        // Register CreateProjectTool
+        this.server.tool(
+            CreateAppGuidelinesTool.name,
+            CreateAppGuidelinesTool.description,
+            CreateAppGuidelinesTool.inputSchema,
+            CreateAppGuidelinesTool.fn
+        )
+
         // Register DeveloperGuidelinesTool
         this.server.tool(
             DeveloperGuidelinesTool.name,

@@ -29,7 +29,7 @@ function inferEntityFromComponentName(componentName) {
     return null
 }
 
-export class CreateNewComponentTool {
+class CreateNewComponentTool {
     constructor() {
         this.currentStep = 0
         this.componentData = {
@@ -498,3 +498,5 @@ export default ${pascalComponentName};
         return 'Selected hook/entity not supported for presentational generation.'
     }
 }
+
+export default CreateNewComponentTool
