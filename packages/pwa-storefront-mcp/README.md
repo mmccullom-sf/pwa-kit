@@ -1,6 +1,8 @@
 # PWA Storefront MCP Server
 
-An Model Context Protocol (MCP) server that helps PWA Storefront developers with development.
+An Model Context Protocol (MCP) server that works together with IDEs with AI coding assistant ability to help PWA Storefront developers with their development.
+
+This MCP server should be run as a local MCP server installed by developers or run locally via npx (when it's available on npm in feature).
 
 ## What is MCP?
 
@@ -9,55 +11,100 @@ The Model Context Protocol (MCP) is an open protocol that enables secure connect
 ## Features
 
 This MCP server provides:
-- `create_new_component`: Help developers to create a new PWA Storefront component
+
+- `development_guidelines`: Help developers to understand and follow PWA Storefront developer guidelines and best practices
+- `create_new_component`: Help developers to create a new PWA Storefront component. It will guide developers through a few simple questions and then generate code for the component based on the commerce data model used, layouts, etc.
+- `submit_pwa_kit_project_answers`: Help developers to generate a new PWA Storefront project
 
 ## Setup
 
-1. Install dependencies:
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-## Testing the MCP Server
+## Run the MCP Server
 
-### Method 1: Run the automated test script
-```bash
-npm test
-```
+### Method 1: Run MCP Server From Cursor
 
-This will:
-- Start the MCP server
-- Connect to it as a client
-- List available tools
-- Call the `create_new_component` tool
-- Display the results
+Open Cursor Application
 
-### Method 2: Manual testing with MCP clients
+Go to Cursor Menu on top menu bar, then *Settings* > *Cursor Settings...* 
 
-#### Using Claude Desktop
-1. Add this server to your Claude Desktop configuration:
+<img src="./docs/images/cursor-settings.png" alt="Cursor Settings Screenshot" width="50%" />
+
+Select Tools & Integrations > MCP Tools > New MCP Server
+
+<img src="./docs/images/cursor-mcp-tools.png" alt="Cursor MCP Tools Screenshot" width="50%" />
+
+You will be led to mcp.json file. Add this to your mcp.json:
+
 ```json
 {
   "mcpServers": {
-    "pwa-storefront-server": {
-      "command": "node",
-      "args": ["server.js"],
-      "cwd": "{{$parent_dir_to_mcp}}/pwa-storefront-mcp"
+
+    "pwa-storefront-mcp": {
+      "command": "node {{parent-dir-to-mcp}}/pwa-storefront-mcp/src/server/server.js",
+      "transport": "stdio",
+      "args": []
+    }
+  }
+} 
+```
+
+Cursor will:
+
+- Start the MCP server
+- Connect to it as a client
+- List available tools
+
+You can go back to MCP Tools choose to enable/disable any MCP Server or tools.
+
+### Method 2: Run MCP Server from Claude
+
+#### Using Claude Desktop
+
+1. Go to Claude menu on top menu bar then "Developer" > "Edit Config"
+This will lead you to "claude_desktop_config.json" file.
+
+<img src="./docs/images/claude-config.png" alt="Claude MCP Config Screenshot" width="50%" />
+
+2. Add this server to your claude_desktop_config.json:
+
+```json
+{
+  "mcpServers": {
+    "pwa-storefront-mcp": {
+      "command": "{{path-to-node}}/node",
+      "transport": "stdio",
+      "args": ["{{parent-dir-to-mcp}}}/pwa-storefront-mcp/src/server/server.js"]
     }
   }
 }
 ```
 
+Claude will:
+
+- Start the MCP server
+- Connect to it as a client
+- List available tools
+
+<img src="./docs/images/claude-list-tools.png" alt="Claude MCP Tools Screenshot" width="40%" />
+
+You can also enable/disable any available tools from here.
+
 #### Using other MCP clients
 The server runs on stdio, so you can test it with any MCP-compatible client.
 
-### Method 3: Direct stdio testing
+### Method 3: Manually start MCP Server
 
-You can also test directly by running the server and sending JSON-RPC messages:
+You can also manually the server from command line and sending JSON-RPC messages:
 
 ```bash
+cd {{dir-to-mcp}}
 # Start the server
-node server.js
+node src/server/server.js
 
 # Then send JSON-RPC requests to stdin:
 {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}
@@ -90,31 +137,23 @@ The server will output debug information to stderr and handle MCP protocol messa
   - mcp.json
   - claude_desktop_config.json
   /src
-    /components
-      - index.js
-      - PrimaryButton.jsx
-      ... (other components)
     /server
       - server.js
-      - server-old-fashioned.js
     /utils
-      - AddComponentTool.js
-    /scripts
-      - create-button.js
-      - demo.js
+      - pwa-developer-guideline-tool.js
+      - utils.js
     /tests
       - test-mcp.js
   /docs
+    /images
+        - claude-config.png
+        - claude-list-tools.png
+        - cursor-list-tools.png
+        - cursor-settings.pnb
     - cursor-integration-guide.md
   /node_modules
-  /.cursor
 ```
 
-- All React components are in `src/components/`.
 - Server code is in `src/server/`.
 - Utilities/tools are in `src/utils/`.
-- Scripts are in `src/scripts/`.
-- Tests are in `src/tests/`.
 - Documentation is in `docs/`.
-
-Update your import paths accordingly. 

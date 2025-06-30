@@ -1,9 +1,12 @@
 {
   "mcpServers": {
-    "pwa-storefront-mcp-server": {
-      "command": "node",
-      "args": ["src/server/server.js"],
-      "cwd": "."
+    "pwa-storefront-mcp": {
+      "command": "node {{parent-dir-to-mcp}}/pwa-storefront-mcp/src/server/server.js",
+      "transport": "stdio",
+      "args": [],
+      "env": {
+        "PWA_STOREFRONT_APP_PATH": "{{parent-dir-to-mcp}}/generated-pwa-site/overrides/app"
+      }
     }
   }
 } 

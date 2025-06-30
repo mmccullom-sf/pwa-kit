@@ -5,16 +5,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {McpServer, ResourceTemplate} from '@modelcontextprotocol/sdk/server/mcp.js'
+import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js'
 import {z} from 'zod'
-import {AddComponentTool} from '../utils/AddComponentTool.js'
-import {InsertExistingComponentTool} from '../utils/InsertExistingComponentTool.js'
-import {CreateNewComponentTool} from '../utils/CreateNewComponentTool.js'
-import fs from 'fs/promises'
-import path from 'path'
-import {fileURLToPath} from 'url'
 import {DeveloperGuidelinesTool} from '../utils/pwa-developer-guideline-tool.js'
+import {CreateNewComponentTool} from '../utils/create-new-component-tool.js'
+import {HookRecommenderTool} from '../utils/hook-recommender-tool.js'
+import {createRequire} from 'module'
+const require = createRequire(import.meta.url)
+const productDocument = require('../data/ProductDocument.json')
+const categoryDocument = require('../data/CategoryDocument.json')
+const documentList = require('../data/DocumentList.json')
 import {TestWithPlaywrightTool} from '../utils/run-site-test-tool.js'
 
 class PwaStorefrontMCPServerHighLevel {
@@ -32,11 +33,14 @@ class PwaStorefrontMCPServerHighLevel {
             }
         )
 
-        this.addComponentTool = new AddComponentTool()
-        this.insertExistingComponentTool = new InsertExistingComponentTool()
+        this.hookRecommenderTool = new HookRecommenderTool()
         this.CreateNewComponentTool = new CreateNewComponentTool()
         this.testWithPlaywrightTool = new TestWithPlaywrightTool()
         this.setupTools()
+
+        // 1. Add in-memory session management
+        this.sessions = {}
+        this.sessionCounter = 1
     }
 
     setupTools() {
@@ -49,134 +53,23 @@ class PwaStorefrontMCPServerHighLevel {
         )
 
         this.server.tool(
-            'analyze_code_structure',
-            'Analyze JavaScript/React code structure to identify components, imports, and insertion points',
+            'recommend_hooks',
+            'Recommends relevant hooks for a given entity (e.g., product, category).',
             {
-                code: z.string().describe('The JavaScript/React code to analyze')
-            },
-            async (args) => {
-                try {
-                    const analysis = this.addComponentTool.analyzeCodeStructure(args.code)
-                    return {
-                        content: [
-                            {
-                                type: 'text',
-                                text: JSON.stringify(
-                                    {
-                                        analysis,
-                                        summary: {
-                                            totalImports: analysis.imports.length,
-                                            totalComponents: analysis.components.length,
-                                            hasReact: analysis.hasReact,
-                                            hasNextJs: analysis.hasNextJs,
-                                            hasTailwind: analysis.hasTailwind,
-                                            insertionPoints: analysis.insertionPoints.length
-                                        }
-                                    },
-                                    null,
-                                    2
-                                )
-                            }
-                        ]
-                    }
-                } catch (error) {
-                    return {
-                        content: [
-                            {
-                                type: 'text',
-                                text: JSON.stringify({error: error.message}, null, 2)
-                            }
-                        ],
-                        isError: true
-                    }
-                }
-            }
-        )
-
-        this.server.tool(
-            'insert_existing_component',
-            'Insert an existing React component into an existing page',
-            {
-                componentName: z.string().describe('Component name'),
-                targetPage: z.string().describe('Target page name or path'),
-                options: z
-                    .object({
-                        beforeComponentName: z
-                            .string()
-                            .optional()
-                            .describe('Insert before Component name'),
-                        afterComponentName: z
-                            .string()
-                            .optional()
-                            .describe('Insert after Component name')
-                    })
-                    .optional()
-            },
-            async (args) => {
-                try {
-                    const modifiedCode = this.insertExistingComponentTool.insertComponentIntoPage(
-                        args.targetPage,
-                        args.componentName
+                entity: z
+                    .string()
+                    .describe(
+                        'The entity to get hook recommendations for (e.g., product, category, basket, customer)'
                     )
-                    return {
-                        content: [
-                            {
-                                type: 'text',
-                                text: JSON.stringify(
-                                    {
-                                        success: true,
-                                        modifiedCode,
-                                        componentType: args.componentType,
-                                        options: args.options
-                                    },
-                                    null,
-                                    2
-                                )
-                            }
-                        ]
-                    }
-                } catch (error) {
-                    return {
-                        content: [
-                            {
-                                type: 'text',
-                                text: JSON.stringify({error: error.message}, null, 2)
-                            }
-                        ],
-                        isError: true
-                    }
-                }
-            }
-        )
-
-        this.server.tool(
-            'create_new_component',
-            'Create a new React component file based on the provided code or a new component',
-            {
-                componentName: z.string().describe('Name of the component to create'),
-                componentCode: z.string().optional().describe('Code of the component to create'),
-                projectDir: z.string().optional().describe('Directory of Retail React App')
             },
             async (args) => {
                 try {
-                    const componentCode = this.CreateNewComponentTool.createNewComponent(
-                        args.componentName,
-                        args.componentCode,
-                        args.projectDir
-                    )
+                    const recommendations = this.hookRecommenderTool.getRecommendations(args.entity)
                     return {
                         content: [
                             {
                                 type: 'text',
-                                text: JSON.stringify(
-                                    {
-                                        success: true,
-                                        componentName: args.componentName,
-                                        code: componentCode
-                                    },
-                                    null,
-                                    2
-                                )
+                                text: JSON.stringify(recommendations, null, 2)
                             }
                         ]
                     }
@@ -193,7 +86,7 @@ class PwaStorefrontMCPServerHighLevel {
                 }
             }
         )
-
+        
         this.server.tool(
             'run_site_test',
             'Run site performance or accessibility test for a given site URL (e.g. https://www.adidas.com/us)',
@@ -204,73 +97,297 @@ class PwaStorefrontMCPServerHighLevel {
             ({testType, siteUrl}) => this.testWithPlaywrightTool.run(testType, siteUrl)
         )
 
-        this.server.resource(
-            'data-model',
-            new ResourceTemplate('data://data-models/{modelName}', {}),
-            {
-                title: 'Commerce Cloud Data Model',
-                description: 'Commerce Cloud Data Model, such as Product, Category, Order, etc.'
-            },
-            async (uri, {modelName}) => {
-                return this.getDataModelDocument(modelName, uri.href)
-            }
-        )
-
         this.server.tool(
-            'get_data_model',
-            'Get the schema of a data model',
+            'create_new_component',
+            'Conversationally collect parameters and create a new React component.',
             {
-                modelName: z
-                    .string()
-                    .describe('The name of the data model (e.g., Product, Category, etc.)')
+                sessionId: z.string().optional().describe('Session ID for the conversational flow'),
+                answer: z.string().optional().describe('User answer to the current question')
             },
-            async ({modelName}) => {
-                const uriHref = `data://data-models/${modelName}`
-                const result = await this.getDataModelDocument(modelName, uriHref)
-                return {
-                    content: result.contents.map((item) => ({
-                        type: 'text',
-                        text: item.text
-                    }))
+            async (args) => {
+                let sessionId = args.sessionId
+                if (!sessionId) {
+                    sessionId = `session-interactive-${this.sessionCounter++}`
+                    this.sessions[sessionId] = {step: 1, answers: {}}
+                }
+                const session = this.sessions[sessionId]
+                const {step, answers} = session
+                const answer = args.answer?.trim()
+                const next = (question) => ({
+                    content: [{type: 'text', text: JSON.stringify({sessionId, question})}]
+                })
+                const done = (message) => ({
+                    content: [{type: 'text', text: JSON.stringify({sessionId, message})}]
+                })
+                switch (step) {
+                    case 1:
+                        if (answer) {
+                            answers.name = answer
+                            session.step = 2
+                            const defaultDir = process.env.PWA_STOREFRONT_APP_PATH
+                                ? process.env.PWA_STOREFRONT_APP_PATH + '/components'
+                                : '/components'
+                            return next(
+                                `Answer yes to use the default components directory (${defaultDir}), or no if you want to specify the full absolute path to use a different directory:`
+                            )
+                        }
+                        return next('What would you like to name your new React component?')
+                    case 2: {
+                        const defaultDir = process.env.PWA_STOREFRONT_APP_PATH
+                            ? process.env.PWA_STOREFRONT_APP_PATH + '/components'
+                            : '/components'
+                        if (answer) {
+                            if (/^(yes|y|true|1)$/i.test(answer)) {
+                                answers.location = defaultDir
+                            } else {
+                                answers.location = answer
+                            }
+                            const tool = new CreateNewComponentTool()
+                            tool.componentData = {
+                                name: answers.name,
+                                location: answers.location,
+                                createTestFile: false,
+                                customCode: '',
+                                entityType: ''
+                            }
+                            session.basicComponentResult = await tool.createComponent()
+                            session.step = 3
+                            return next(
+                                'Is this component related to a specific entity (e.g., product, category, basket, customer)? (optional, press enter to skip)'
+                            )
+                        }
+                        return next(
+                            `Answer yes to use the default components directory (${defaultDir}), or no if you want to specify the full absolute path to use a different directory:`
+                        )
+                    }
+                    case 3:
+                        if (answer !== undefined) {
+                            answers.entityType = answer
+                        } else {
+                            answers.entityType = ''
+                        }
+                        // If product, ask for single or list, else continue generic flow
+                        if (answers.entityType && answers.entityType.toLowerCase() === 'product') {
+                            session.step = 4
+                            return next(
+                                'Should this component display a single product or a list of products ? Reply with "single" or "list".'
+                            )
+                        } else {
+                            // Generic flow for other entities
+                            const {HookRecommenderTool} = await import(
+                                '../utils/hook-recommender-tool.js'
+                            )
+                            const recommender = new HookRecommenderTool()
+                            const hooks = Array.isArray(
+                                recommender.getRecommendations(answers.entityType)
+                            )
+                                ? recommender.getRecommendations(answers.entityType)
+                                : []
+                            session.hookOptions = hooks.map((h) => h.name)
+                            session.hookDescriptions = hooks.map((h) => h.description)
+                            session.hookOptions.push('schema')
+                            session.hookDescriptions.push('Use schema fields directly')
+                            session.hookOptions.push('none')
+                            session.hookDescriptions.push(
+                                'None of the above (finish component creation now)'
+                            )
+                            let prompt = 'Select data fetching details for this component:'
+                            session.hookOptions.forEach((opt, idx) => {
+                                prompt += `\n${idx + 1}. ${opt}`
+                                if (session.hookDescriptions[idx]) {
+                                    prompt += ` (${session.hookDescriptions[idx]})`
+                                }
+                            })
+                            prompt += '\n\nReply with the number of your choice.'
+                            session.step = 5
+                            return next(prompt)
+                        }
+                    case 4: {
+                        // Only for product entity: handle single/list
+                        if (answer && /list/i.test(answer)) {
+                            // List of products
+                            const tool = new CreateNewComponentTool()
+                            tool.componentData = {
+                                name: answers.name,
+                                location: answers.location,
+                                createTestFile: false,
+                                customCode: '',
+                                entityType: 'product'
+                            }
+                            const dataModel = this.getDataModel('product')
+                            let schemaObj =
+                                dataModel && dataModel.properties ? dataModel.properties : {}
+                            let presentationalResult = await tool.updateComponentToPresentational(
+                                'product',
+                                answers.name,
+                                answers.location,
+                                schemaObj,
+                                {list: true}
+                            )
+                            session.step = 99
+                            return done(
+                                (session.basicComponentResult || '') +
+                                    `\n\n${presentationalResult}\nComponent creation flow complete.`
+                            )
+                        } else if (answer && /single/i.test(answer)) {
+                            // Single product
+                            const tool = new CreateNewComponentTool()
+                            tool.componentData = {
+                                name: answers.name,
+                                location: answers.location,
+                                createTestFile: false,
+                                customCode: '',
+                                entityType: 'product'
+                            }
+                            const dataModel = this.getDataModel('product')
+                            let schemaObj =
+                                dataModel && dataModel.properties ? dataModel.properties : {}
+                            let presentationalResult = await tool.updateComponentToPresentational(
+                                'product',
+                                answers.name,
+                                answers.location,
+                                schemaObj,
+                                {list: false}
+                            )
+                            session.step = 99
+                            return done(
+                                (session.basicComponentResult || '') +
+                                    `\n\n${presentationalResult}\nComponent creation flow complete.`
+                            )
+                        } else {
+                            return next('Please reply with "single" or "list".')
+                        }
+                    }
+                    case 5: {
+                        // Generic flow for other entities (hook selection, schema, etc.)
+                        const selectedIdx = parseInt(answer, 10) - 1
+                        const selectedOption =
+                            session.hookOptions && session.hookOptions[selectedIdx]
+                        if (!selectedOption) {
+                            return next(
+                                'Invalid selection. Please reply with a valid number from the list.'
+                            )
+                        }
+                        if (selectedOption === 'none') {
+                            session.step = 99
+                            return done(
+                                (session.basicComponentResult || '') +
+                                    '\nComponent creation flow complete.'
+                            )
+                        }
+                        const tool = new CreateNewComponentTool()
+                        tool.componentData = {
+                            name: answers.name,
+                            location: answers.location,
+                            createTestFile: false, // already created
+                            customCode: '',
+                            entityType: answers.entityType || ''
+                        }
+                        let result = session.basicComponentResult || ''
+                        let dataModel = null
+                        if (selectedOption === 'schema') {
+                            dataModel = this.getDataModel(answers.entityType)
+                            let schemaObj =
+                                dataModel && dataModel.properties ? dataModel.properties : {}
+                            let presentationalResult = await tool.updateComponentToPresentational(
+                                answers.entityType,
+                                answers.name,
+                                answers.location,
+                                schemaObj
+                            )
+                            session.step = 99
+                            session.dataModel = dataModel
+                            return next(
+                                result +
+                                    `\n\n${presentationalResult}\nComponent creation flow complete.`
+                            )
+                        } else {
+                            dataModel = this.getDataModel(answers.entityType)
+                            let hookResult = await tool.handleHookSelection(
+                                selectedOption,
+                                answers.entityType,
+                                answers.name,
+                                answers.location,
+                                {
+                                    [answers.entityType]: dataModel
+                                }
+                            )
+                            session.step = 99
+                            session.dataModel = dataModel
+                            return next(
+                                result + `\n\n${hookResult}\nComponent creation flow complete.`
+                            )
+                        }
+                    }
+                    case 99: {
+                        if (answer) {
+                            // Completely re-initialize session for new component creation
+                            this.sessions[sessionId] = {step: 2, answers: {name: answer}}
+                            // Immediately process the new step (step 2) with the current answer
+                            const session = this.sessions[sessionId]
+                            const {answers} = session
+                            // Make handleStep async to allow await inside
+                            const handleStep = async (step, answer) => {
+                                switch (step) {
+                                    case 2: {
+                                        const defaultDir = process.env.PWA_STOREFRONT_APP_PATH
+                                            ? process.env.PWA_STOREFRONT_APP_PATH + '/components'
+                                            : '/components'
+                                        if (answer) {
+                                            if (/^(yes|y|true|1)$/i.test(answer)) {
+                                                answers.location = defaultDir
+                                            } else {
+                                                answers.location = answer
+                                            }
+                                            const tool = new CreateNewComponentTool()
+                                            tool.componentData = {
+                                                name: answers.name,
+                                                location: answers.location,
+                                                createTestFile: false,
+                                                customCode: '',
+                                                entityType: ''
+                                            }
+                                            session.basicComponentResult =
+                                                await tool.createComponent()
+                                            session.step = 3
+                                            return next(
+                                                'Is this component related to a specific entity (e.g., product, category, basket, customer)? (optional, press enter to skip)'
+                                            )
+                                        }
+                                        return next(
+                                            `Answer yes to use the default components directory (${defaultDir}), or no if you want to specify the full absolute path to use a different directory:`
+                                        )
+                                    }
+                                    default:
+                                        return next(
+                                            'What would you like to name your new React component?'
+                                        )
+                                }
+                            }
+                            return await handleStep(session.step, undefined)
+                        }
+                        return done('Component creation flow complete.')
+                    }
+                    default:
+                        session.step = 1
+                        return next('What would you like to name your new React component?')
                 }
             }
         )
     }
 
-    async getDataModelDocument(modelName, uriHref) {
-        try {
-            const __filename = fileURLToPath(import.meta.url)
-            const __dirname = path.dirname(__filename)
-            const dataDir = path.join(__dirname, '..', 'data')
-            const filePath = path.join(dataDir, `${modelName}Document.json`)
-            let fileContent
-            try {
-                fileContent = await fs.readFile(filePath, 'utf8')
-            } catch (err) {
-                if (err.code === 'ENOENT') {
-                    fileContent = JSON.stringify({message: `No document found for ${modelName}`})
-                } else {
-                    throw err
-                }
-            }
-            return {
-                contents: [
-                    {
-                        uri: uriHref,
-                        text: fileContent
-                    }
-                ]
-            }
-        } catch (error) {
-            return {
-                contents: [
-                    {
-                        uri: uriHref,
-                        text: JSON.stringify({error: error.message}, null, 2)
-                    }
-                ]
-            }
+    /**
+     * Simple method to get data models directly from imports
+     * @param {string} modelName - Name of the model (e.g., 'product', 'category')
+     * @returns {object|null} The data model object or null if not found
+     */
+    getDataModel(modelName) {
+        const models = {
+            product: productDocument,
+            category: categoryDocument,
+            documentList: documentList
         }
+        return models[modelName.toLowerCase()] || null
     }
 
     async run() {
