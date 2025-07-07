@@ -19,6 +19,10 @@ const productDocument = require('../data/ProductDocument.json')
 const categoryDocument = require('../data/CategoryDocument.json')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const documentList = require('../data/DocumentList.json')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJson = require('../../package.json')
+
+const FALLBACK_VERSION = '0.1.0'
 
 class PwaStorefrontMCPServerHighLevel {
     constructor() {
@@ -26,7 +30,7 @@ class PwaStorefrontMCPServerHighLevel {
         this.server = new McpServer(
             {
                 name: 'pwa-storefront-mcp-server',
-                version: '0.1.0'
+                version: packageJson?.version || FALLBACK_VERSION
             },
             {
                 capabilities: {
@@ -34,7 +38,6 @@ class PwaStorefrontMCPServerHighLevel {
                 }
             }
         )
-
         this.CreateNewComponentTool = new CreateNewComponentTool()
         this.testWithPlaywrightTool = new TestWithPlaywrightTool()
         this.setupTools()
