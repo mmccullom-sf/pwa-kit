@@ -5,7 +5,8 @@
       "transport": "stdio",
       "args": [],
       "env": {
-        "PWA_STOREFRONT_APP_PATH": "{{path-to-app-directory}}"
+        "PWA_STOREFRONT_APP_PATH": "{{path-to-app-directory}}",
+        "WORKSPACE_FOLDER_PATHS": "{{path-to-base-pwa-kit-monorepo}}"
       }
     }
   }
