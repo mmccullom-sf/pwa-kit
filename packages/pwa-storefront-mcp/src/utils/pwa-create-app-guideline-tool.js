@@ -4,18 +4,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import path from 'path'
+import os from 'os';
+import path from 'path';
+import { exec } from 'child_process';
+import fs from 'fs/promises';
 
 // Project dependencies
-import {EmptyJsonSchema, isMonoRepo, runCommand} from './utils'
+import {EmptyJsonSchema} from './utils.js';
 
-// const CREATE_APP_VERSION = 'latest'
+//const CREATE_APP_VERSION = 'latest'
 const CREATE_APP_VERSION = '3.11.0-nightly-20250630080227'
-const CREATE_APP_COMMAND = isMonoRepo()
-    ? path.resolve(
-          `${process.env.WORKSPACE_FOLDER_PATHS}/packages/pwa-kit-create-app/scripts/create-mobify-app.js`
-      )
-    : `@salesforce/pwa-kit-create-app@${CREATE_APP_VERSION}`
+const CREATE_APP_COMMAND = '@salesforce/pwa-kit-create-app@3.11.0-nightly-20250630080227'
 const DISPLAY_PROGRAM_COMMAND = '--displayProgram'
 const NPX_COMMAND = 'npx'
 
@@ -67,6 +66,29 @@ If the user requests a project using a **template**:
 - Use the \`${NPX_COMMAND}\` command to run the \`${CREATE_APP_COMMAND}\` CLI tool when creating a new project.
 `
 
+export async function runNpxCommand() {
+    return new Promise((resolve, reject) => {
+        const tempDir = os.tmpdir();
+        const outputFilePath = path.join(tempDir, 'npx-output.json');
+        const errorFilePath = path.join(tempDir, 'npx-error.log');
+        const command = `${NPX_COMMAND} ${CREATE_APP_COMMAND} ${DISPLAY_PROGRAM_COMMAND} > ${outputFilePath} 2> ${errorFilePath}`;
+
+        exec(command, (error) => {
+            if (error) {
+                // console.error('Failed to run npx command:', error);
+                reject(error);
+                return;
+            }
+
+            // console.log('Command executed successfully. Output written to', outputFilePath);
+            fs.readFile(outputFilePath, 'utf-8')
+                .then((data) => resolve(data))
+                .catch((err) => reject(err));
+        });
+    });
+}
+
+
 export default {
     name: 'create_app_guidelines',
     description: `This tool is used to provide the agent with the instructions on how to use the @salesforce/pwa-kit-create-app CLI tool to create a new PWA Kit projects. Do not attempt to create a project without using this tool first.`,
@@ -76,10 +98,8 @@ export default {
 
         // Run the display program and get the output.
         try {
-            programOutput = await runCommand(NPX_COMMAND, [
-                CREATE_APP_COMMAND,
-                DISPLAY_PROGRAM_COMMAND
-            ])
+            programOutput = await runNpxCommand()
+          
         } catch (err) {
             console.error('Failed to run display program:', err)
         }
